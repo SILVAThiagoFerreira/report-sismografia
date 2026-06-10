@@ -1,0 +1,25 @@
+{
+  "system": {
+    "name": "Report Sismografia Enaex",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "input_dir": "input",
+    "output_dir": "output",
+    "logs_dir": "logs",
+    "legacy_input_dir": "INPUTS",
+    "legacy_output_dir": "OUTPUTS",
+    "logo_path": "ICONE/Enaex Stronger Bonds Logo.png"
+  },
+  "execution": {
+    "watch_interval_seconds": 5,
+    "file_glob": "*.pdf",
+    "default_command": "generate"
+  },
+  "report": {
+    "summary_record_limit": 3,
+    "png_scale": 6.0,
+    "png_page_number": 0,
+    "vibration_alert_threshold_mm_s": 0.8
+  }
+}

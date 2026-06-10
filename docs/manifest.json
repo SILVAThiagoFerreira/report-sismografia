@@ -1,0 +1,9 @@
+{
+  "name": "Report Sismografia Enaex",
+  "short_name": "Report Enaex",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F1F1F1",
+  "theme_color": "#E5231B",
+  "icons": []
+}

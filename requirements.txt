@@ -1,0 +1,5 @@
+pypdf
+reportlab
+matplotlib
+Pillow
+PyMuPDF
