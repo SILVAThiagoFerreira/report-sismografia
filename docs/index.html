@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Report Sismografia Enaex</title>
+    <meta name="color-scheme" content="light only" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -11,32 +12,33 @@
   </head>
   <body>
     <div class="shell">
-      <header class="topbar">
-        <div class="brand">
-          <h1>Report Sismografia Enaex</h1>
-          <p>Importe CSVs, valide os pontos e exporte o relatório no navegador.</p>
+      <header class="hero">
+        <img class="brandmark" src="./assets/enaex-brand.png" alt="Enaex" />
+        <div>
+          <h1>Report Sismografia</h1>
+          <p>Upload de CSV, validação automática e exportação local de relatório executivo com padrão corporativo limpo.</p>
         </div>
-        <div class="actions">
+        <div class="hero-actions">
           <label class="file-label" for="csvInput">Selecionar CSVs</label>
-          <button class="primary" id="generateBtn" disabled>Gerar relatório</button>
-          <button class="secondary" id="pdfBtn" disabled>Baixar PDF</button>
-          <button class="ghost" id="pngBtn" disabled>Baixar PNG</button>
-          <button class="ghost" id="jsonBtn" disabled>Baixar JSON</button>
-          <button class="ghost" id="txtBtn" disabled>Baixar WhatsApp</button>
+          <button class="primary" id="generateBtn" disabled>Gerar análise</button>
+          <button class="secondary" id="pdfBtn" disabled>PDF</button>
+          <button class="ghost" id="pngBtn" disabled>PNG</button>
+          <button class="ghost" id="jsonBtn" disabled>JSON</button>
+          <button class="ghost" id="txtBtn" disabled>WhatsApp</button>
         </div>
       </header>
 
       <main class="layout">
         <section class="panel">
-          <div class="head">
-            <h2>Entrada e validação</h2>
-            <p>Os CSVs são lidos localmente no navegador. Nada é enviado para servidor.</p>
+          <div class="panel-head">
+            <h2>Entrada</h2>
+            <p>Os CSVs são lidos no navegador. O formato IDFW é tratado como pares chave/valor, não como tabela comum.</p>
           </div>
-          <div class="body grid">
+          <div class="panel-body">
             <div class="drop" id="dropZone">
               <input id="csvInput" type="file" accept=".csv,text/csv" multiple />
-              <strong>Arraste e solte CSVs aqui</strong>
-              <p>ou clique para selecionar arquivos.</p>
+              <strong>Arraste e solte os CSVs aqui</strong>
+              <p>ou use o botão acima para selecionar os arquivos.</p>
               <div class="file-list" id="fileList"></div>
             </div>
 
@@ -47,7 +49,7 @@
 
             <div class="field">
               <label for="clientInput">Cliente no cabeçalho</label>
-              <input id="clientInput" type="text" placeholder="Preenchido automaticamente se vier no CSV" />
+              <input id="clientInput" type="text" placeholder="Opcional" />
             </div>
 
             <div class="field">
@@ -55,18 +57,19 @@
               <input id="statusBox" type="text" readonly value="Aguardando upload de CSV." />
             </div>
 
-            <div class="footer-note" id="validationBox"></div>
+            <div class="validation" id="validationBox"></div>
+            <div class="footer-note">Logo e marcação visual carregados a partir da pasta `VISUAL`.</div>
           </div>
         </section>
 
         <section class="panel">
-          <div class="head">
-            <h3>Pré-visualização do report</h3>
-            <p>Layout otimizado para a mesma linguagem visual do material anterior.</p>
+          <div class="panel-head">
+            <h3>Pré-visualização</h3>
+            <p>Layout executivo com identidade Enaex, pronto para relatório e compartilhamento.</p>
           </div>
-          <div class="body">
+          <div class="panel-body">
             <div class="summary" id="summaryGrid"></div>
-            <div class="report" style="margin-top: 14px;">
+            <div class="report-frame">
               <div class="report-page">
                 <canvas class="report-canvas" id="reportCanvas"></canvas>
               </div>
@@ -79,7 +82,6 @@
         </section>
       </main>
     </div>
-
     <script type="module" src="./app.js"></script>
   </body>
 </html>

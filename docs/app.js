@@ -1,492 +1,277 @@
 const CHANNEL_ORDER = ["Tran", "Vert", "Long"];
-const DEFAULT_THRESHOLD = 0.8;
+const LIMIT_FORMULA = (freq) => (freq <= 4 ? 15 : freq <= 15 ? 15 + (freq - 4) * (5 / 11) : freq <= 40 ? 20 + (freq - 15) * (30 / 25) : 50);
 
-const state = {
-  files: [],
-  records: [],
-  report: null,
+const state = { files: [], report: null };
+const els = Object.fromEntries([
+  "csvInput","dropZone","fileList","generateBtn","pdfBtn","pngBtn","jsonBtn","txtBtn",
+  "thresholdInput","clientInput","statusBox","validationBox","summaryGrid","reportCanvas","footerHint","recordHint",
+].map((id) => [id, document.getElementById(id)]));
+
+els.thresholdInput.value = "0.8";
+
+const fmt = (v, d = 1) => (v === null || v === undefined || Number.isNaN(v) ? "N/D" : Number(v).toFixed(d).replace(".", ","));
+const fmtDate = (v) => v instanceof Date ? v.toLocaleDateString("pt-BR") : (v ? new Date(v).toLocaleDateString("pt-BR") : "N/D");
+const clean = (s) => String(s ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+const parseNum = (v) => { if (v == null) return null; const m = String(v).trim().replace(",", ".").match(/-?\d+(?:\.\d+)?/); return m ? Number(m[0]) : null; };
+const parseDate = (v) => {
+  const t = String(v ?? "").trim(); if (!t) return null;
+  const m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/) || t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/) || t.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+  if (m) return m[1].length === 4 ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  const d = new Date(t); return Number.isNaN(d.getTime()) ? null : d;
 };
+const toBool = (v) => /^(1|true|sim|yes|y|passed|passed)$/i.test(String(v ?? "").trim());
 
-const els = {
-  csvInput: document.getElementById("csvInput"),
-  dropZone: document.getElementById("dropZone"),
-  fileList: document.getElementById("fileList"),
-  generateBtn: document.getElementById("generateBtn"),
-  pdfBtn: document.getElementById("pdfBtn"),
-  pngBtn: document.getElementById("pngBtn"),
-  jsonBtn: document.getElementById("jsonBtn"),
-  txtBtn: document.getElementById("txtBtn"),
-  thresholdInput: document.getElementById("thresholdInput"),
-  clientInput: document.getElementById("clientInput"),
-  statusBox: document.getElementById("statusBox"),
-  validationBox: document.getElementById("validationBox"),
-  summaryGrid: document.getElementById("summaryGrid"),
-  reportCanvas: document.getElementById("reportCanvas"),
-  footerHint: document.getElementById("footerHint"),
-  recordHint: document.getElementById("recordHint"),
-};
-
-els.thresholdInput.value = String(DEFAULT_THRESHOLD);
-
-function parseNumber(value) {
-  if (value === null || value === undefined) return null;
-  const text = String(value).trim().replace(",", ".");
-  if (!text) return null;
-  const match = text.match(/-?\d+(?:\.\d+)?/);
-  return match ? Number(match[0]) : null;
-}
-
-function parseDate(value) {
-  if (!value) return null;
-  const text = String(value).trim();
-  if (!text) return null;
-  const formats = [
-    /^(\d{4})-(\d{2})-(\d{2})$/,
-    /^(\d{2})\/(\d{2})\/(\d{4})$/,
-    /^(\d{4})\/(\d{2})\/(\d{2})$/,
-  ];
-  for (const pattern of formats) {
-    const match = text.match(pattern);
-    if (!match) continue;
-    const parts = match.slice(1).map(Number);
-    const date = pattern === formats[1]
-      ? new Date(parts[2], parts[1] - 1, parts[0])
-      : new Date(parts[0], parts[1] - 1, parts[2]);
-    return Number.isNaN(date.getTime()) ? null : date;
-  }
-  const fallback = new Date(text);
-  return Number.isNaN(fallback.getTime()) ? null : fallback;
-}
-
-function fmt(value, decimals = 1) {
-  if (value === null || value === undefined || Number.isNaN(value)) return "N/D";
-  return Number(value).toFixed(decimals).replace(".", ",");
-}
-
-function fmtDate(value) {
-  if (!value) return "N/D";
-  const d = value instanceof Date ? value : parseDate(value);
-  if (!d) return "N/D";
-  return d.toLocaleDateString("pt-BR");
-}
-
-function normalizeKey(key) {
-  return String(key || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
-}
-
-function rowToObject(row) {
-  const obj = {};
-  for (const [key, value] of Object.entries(row)) obj[normalizeKey(key)] = value;
-  return obj;
-}
-
-function buildChannel(axis, row) {
-  const ppv = parseNumber(row[`${axis.toLowerCase()}_ppv_mm_s`] ?? row[`${axis.toLowerCase()}_ppv`] ?? row[`${axis.toLowerCase()}_mm_s`]);
-  const freq = parseNumber(row[`${axis.toLowerCase()}_zc_freq_hz`] ?? row[`${axis.toLowerCase()}_frequency_hz`] ?? row[`${axis.toLowerCase()}_freq_hz`]);
-  const limit = freq === null ? null : freq <= 4 ? 15 : freq <= 15 ? 15 + ((freq - 4) * (5 / 11)) : freq <= 40 ? 20 + ((freq - 15) * (30 / 25)) : 50;
-  return {
-    axis,
-    ppv_mm_s: ppv,
-    zc_freq_hz: freq,
-    reference_limit_mm_s: limit,
-    compliant: ppv === null || limit === null ? null : ppv <= limit,
-  };
+function normalizeRow(row) {
+  const out = {};
+  for (const [k, v] of Object.entries(row)) out[clean(k)] = v;
+  return out;
 }
 
 function parseRecord(row, sourceFile) {
-  const r = rowToObject(row);
-  const record = {
+  const r = normalizeRow(row);
+  const eventDate = parseDate(r.eventdate || r.dataevento || r.data);
+  const channels = Object.fromEntries(CHANNEL_ORDER.map((axis) => {
+    const key = axis.toLowerCase();
+    const ppv = parseNum(r[`${key}ppv`] ?? r[`${key}ppv_mm_s`] ?? r[`${key}_ppv`] ?? r[`${key}_ppv_mm_s`]);
+    const freq = parseNum(r[`${key}zcfreq`] ?? r[`${key}zc_freq`] ?? r[`${key}zc_freq_hz`] ?? r[`${key}freq`]);
+    return [axis, { axis, ppv_mm_s: ppv, zc_freq_hz: freq, reference_limit_mm_s: freq == null ? null : LIMIT_FORMULA(freq), compliant: ppv == null || freq == null ? null : ppv <= LIMIT_FORMULA(freq) }];
+  }));
+  const peak = parseNum(r.peakvectorsum || r.peak_vector_sum || r.pvs);
+  return {
     source_file: sourceFile,
-    location: r.location || r.ponto || r.localizacao || sourceFile.replace(/\.[^.]+$/, ""),
-    client: r.client || r.cliente || null,
-    user_name: r.user_name || r.usuario || null,
-    serial_number: r.serial_number || r.serial || null,
-    battery_level: r.battery_level || r.bateria || null,
-    unit_calibration: r.unit_calibration || r.calibracao || null,
-    file_name: r.file_name || r.nome_arquivo || null,
-    scaled_distance: parseNumber(r.scaled_distance || r.distancia_escalada),
-    distance_m: parseNumber(r.distance_m || r.distancia_m),
-    charge_kg: parseNumber(r.charge_kg || r.carga_kg),
-    raw_scaled_distance: r.raw_scaled_distance || null,
-    event_date: parseDate(r.event_date || r.data_evento || r.data),
-    pspl_db_l: parseNumber(r.pspl_db_l || r.pspl),
-    microphone_zc_freq_hz: parseNumber(r.microphone_zc_freq_hz || r.microfone_zc_freq_hz),
-    peak_vector_sum_mm_s: parseNumber(r.peak_vector_sum_mm_s || r.peak_vector_sum || r.pvs),
-    channels: Object.fromEntries(CHANNEL_ORDER.map((axis) => [axis, buildChannel(axis, r)])),
+    location: r.titlestring1 || r.location || r.ponto || sourceFile.replace(/\.[^.]+$/, ""),
+    client: r.titlestring2 || r.client || r.cliente || null,
+    user_name: r.titlestring3 || r.user_name || r.usuario || null,
+    serial_number: r.serialnumber || r.serial_number || null,
+    battery_level: r.batterylevel || r.battery_level || null,
+    unit_calibration: r.calibration || r.unit_calibration || null,
+    file_name: r.filename || r.file_name || null,
+    scaled_distance: parseNum(r.scaleddistance || r.scaled_distance),
+    distance_m: parseNum(r.distance_m),
+    charge_kg: parseNum(r.charge_kg),
+    raw_scaled_distance: r.scaleddistance || r.raw_scaled_distance || null,
+    event_date: eventDate,
+    pspl_db_l: parseNum(r.micpspl || r.pspl_db_l || r.pspl),
+    microphone_zc_freq_hz: parseNum(r.miczcfreq || r.microphone_zc_freq_hz),
+    peak_vector_sum_mm_s: peak,
+    channels,
+    pspl_compliant: r.pspl_compliant == null || r.pspl_compliant === "" ? (parseNum(r.micpspl || r.pspl_db_l) == null ? null : parseNum(r.micpspl || r.pspl_db_l) <= 134) : toBool(r.pspl_compliant),
   };
-  const psplCompliant = r.pspl_compliant;
-  record.pspl_compliant = psplCompliant === undefined || psplCompliant === null || psplCompliant === "" ? (record.pspl_db_l === null ? null : record.pspl_db_l <= 134) : /^(1|true|sim|yes|y)$/i.test(String(psplCompliant));
-  return record;
-}
-
-function anyAlert(records, threshold) {
-  return records.some((record) => {
-    const values = [record.peak_vector_sum_mm_s, ...CHANNEL_ORDER.map((axis) => record.channels[axis].ppv_mm_s)];
-    return values.some((value) => value !== null && value > threshold);
-  });
-}
-
-function alertLocations(records, threshold) {
-  return records.filter((record) => {
-    const values = [record.peak_vector_sum_mm_s, ...CHANNEL_ORDER.map((axis) => record.channels[axis].ppv_mm_s)];
-    return values.some((value) => value !== null && value > threshold);
-  }).map((record) => record.location);
 }
 
 function primaryClient(records) {
   return records.find((r) => r.user_name || r.client)?.user_name || records.find((r) => r.client)?.client || "ENAEX";
 }
 
+function alertLocations(records, threshold) {
+  return records.filter((r) => [r.peak_vector_sum_mm_s, ...CHANNEL_ORDER.map((a) => r.channels[a].ppv_mm_s)].some((v) => v != null && v > threshold)).map((r) => r.location);
+}
+function anyAlert(records, threshold) { return alertLocations(records, threshold).length > 0; }
 function statusText(records, threshold) {
-  if (!records.length) return null;
-  if (anyAlert(records, threshold)) {
-    return `⚠️ Índices de vibração: acima de ${fmt(threshold, 1)} mm/s. Pontos: ${alertLocations(records, threshold).join(", ")}.`;
-  }
-  return `✅ Índices de vibração: abaixo de ${fmt(threshold, 1)} mm/s.`;
+  if (!records.length) return "Aguardando upload de CSV.";
+  return anyAlert(records, threshold)
+    ? `⚠️ Índices de vibração: acima de ${fmt(threshold, 1)} mm/s. Pontos: ${alertLocations(records, threshold).join(", ")}.`
+    : `✅ Índices de vibração: abaixo de ${fmt(threshold, 1)} mm/s.`;
 }
-
 function allCompliant(records) {
-  const states = records.map((record) => {
-    const channelStates = Object.values(record.channels).map((c) => c.compliant).filter((v) => v !== null);
-    const known = [record.pspl_compliant, channelStates.length ? channelStates.every(Boolean) : null].filter((v) => v !== null);
-    return known.length ? known.every(Boolean) : null;
-  }).filter((v) => v !== null);
-  return states.length ? states.every(Boolean) : null;
+  const known = records.flatMap((r) => [r.pspl_compliant, ...CHANNEL_ORDER.map((a) => r.channels[a].compliant)]).filter((v) => v !== null);
+  return known.length ? known.every(Boolean) : null;
 }
 
-function summaryStats(records, threshold) {
-  const alerts = alertLocations(records, threshold).length;
-  return [
-    { label: "Registros", value: records.length, hint: "pontos processados" },
-    { label: "Alertas", value: alerts, hint: "acima do limite" },
-    { label: "Cliente", value: primaryClient(records), hint: "cabeçalho" },
-    { label: "Conformidade", value: allCompliant(records) === false ? "Verificar" : "OK", hint: "PSPL + vibração" },
-  ];
-}
-
-function updateFileList() {
-  els.fileList.innerHTML = "";
-  for (const file of state.files) {
-    const item = document.createElement("div");
-    item.className = "file-chip";
-    item.innerHTML = `<span>${file.name}</span><span>${Math.round(file.size / 1024)} KB</span>`;
-    els.fileList.appendChild(item);
+function readCsvLike(text, fileName) {
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter(Boolean);
+  const rows = [];
+  for (const line of lines) {
+    const matches = [...line.matchAll(/"((?:[^"]|"")*)"/g)].map((m) => m[1].replace(/""/g, '"'));
+    if (matches.length >= 2) rows.push(matches);
   }
-}
-
-function drawReport(canvas, report) {
-  const dpr = Math.max(1, window.devicePixelRatio || 1);
-  const width = 1240;
-  const height = 1754;
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
-  canvas.style.width = "100%";
-  canvas.style.height = "100%";
-  const ctx = canvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  renderPage(ctx, width, height, report);
-}
-
-function roundedRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
-function panel(ctx, x, y, w, h, title, accent, body, darkTitle = true) {
-  ctx.save();
-  ctx.fillStyle = "#fff";
-  ctx.shadowColor = "rgba(0,0,0,.08)";
-  ctx.shadowBlur = 18;
-  ctx.shadowOffsetY = 6;
-  roundedRect(ctx, x, y, w, h, 18);
-  ctx.fill();
-  ctx.restore();
-  ctx.fillStyle = accent;
-  roundedRect(ctx, x, y, w, 52, 18);
-  ctx.fill();
-  ctx.fillStyle = darkTitle ? "#fff" : "#18202a";
-  ctx.font = "bold 22px Arial";
-  ctx.fillText(title, x + 20, y + 34);
-  ctx.fillStyle = "#18202a";
-  body(ctx, x + 18, y + 70, w - 36, h - 82);
-}
-
-function renderPage(ctx, width, height, report) {
-  ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "#f1f1f1";
-  ctx.fillRect(0, 0, width, height);
-  ctx.fillStyle = "#e5231b";
-  ctx.fillRect(0, height - 10, width, 10);
-
-  ctx.fillStyle = "#ffffff";
-  roundedRect(ctx, 30, 28, width - 60, 96, 20);
-  ctx.fill();
-  ctx.fillStyle = "#e5231b";
-  ctx.font = "bold 30px Arial";
-  ctx.fillText("MONITORAMENTO SISMOGRÁFICO", 56, 72);
-  ctx.fillStyle = "#667487";
-  ctx.font = "bold 21px Arial";
-  ctx.fillText(report.client, 56, 105);
-  ctx.fillStyle = "#18202a";
-  ctx.font = "16px Arial";
-  ctx.fillText(`${report.records.length} ponto(s) | Gerado em ${new Date(report.generatedAt).toLocaleString("pt-BR")}`, 56, 130);
-
-  panel(ctx, 30, 150, width - 60, 110, "Escopo da Campanha", "#7bc51c", (c, x, y, w) => {
-    drawWrapped(c, report.overview, x, y, w, 22);
-  }, false);
-
-  panel(ctx, 30, 280, width - 60, 130, "Conclusão Técnica", "#7bc51c", (c, x, y, w) => {
-    drawWrapped(c, report.conclusion, x, y, w, 21);
-  }, false);
-
-  const half = (width - 78) / 2;
-  panel(ctx, 30, 430, half, 350, "Pressão Sonora x Distância", "#434c5b", (c, x, y, w, h) => {
-    c.fillStyle = "#fafafa";
-    roundedRect(c, x, y, w, h, 14);
-    c.fill();
-    c.fillStyle = "#667487";
-    c.font = "14px Arial";
-    c.fillText("Visualização resumida dos valores registrados.", x + 16, y + 28);
-    drawMiniList(c, report.records.map((r) => `${r.location}: PSPL ${fmt(r.pspl_db_l, 1)} dB(L)`), x + 16, y + 58, w - 32, 22);
-  }, false);
-  panel(ctx, 48 + half, 430, half, 350, "PPV x Limite ABNT", "#7bc51c", (c, x, y, w, h) => {
-    c.fillStyle = "#fafafa";
-    roundedRect(c, x, y, w, h, 14);
-    c.fill();
-    c.fillStyle = "#667487";
-    c.font = "14px Arial";
-    c.fillText("Limite configurado na interface.", x + 16, y + 28);
-    drawMiniList(c, report.records.map((r) => `${r.location}: ${fmt(maxPPV(r), 3)} mm/s`), x + 16, y + 58, w - 32, 22);
-  }, false);
-
-  ctx.fillStyle = "#18202a";
-  ctx.font = "bold 24px Arial";
-  ctx.fillText("Pontos Monitorados", 30, 840);
-  drawRecords(ctx, report.records.slice(0, 3), 30, 870, width - 60, 160);
-
-  if (report.records.length > 3) {
-    ctx.fillStyle = "#e5231b";
-    ctx.font = "bold 24px Arial";
-    ctx.fillText("Registros Complementares", 30, 1125);
-    drawRecords(ctx, report.records.slice(3), 30, 1155, width - 60, 135, true);
-  }
-
-  ctx.fillStyle = "#667487";
-  ctx.font = "14px Arial";
-  ctx.fillText("Base normativa: ABNT NBR 9653:2018.", 60, height - 38);
-}
-
-function drawWrapped(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = String(text).split(/\s+/);
-  let line = "";
-  let currentY = y;
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, currentY);
-      currentY += lineHeight;
-      line = word;
-    } else {
-      line = test;
-    }
-  }
-  if (line) ctx.fillText(line, x, currentY);
-}
-
-function drawMiniList(ctx, lines, x, y, maxWidth, lineHeight) {
-  ctx.fillStyle = "#18202a";
-  ctx.font = "16px Arial";
-  lines.slice(0, 8).forEach((line, index) => {
-    const trimmed = line.length > 60 ? `${line.slice(0, 57)}...` : line;
-    ctx.fillText(trimmed, x, y + index * lineHeight);
-  });
-}
-
-function drawRecords(ctx, records, x, y, w, h, compact = false) {
-  const rowH = compact ? 56 : 74;
-  records.forEach((record, index) => {
-    const top = y + index * (rowH + 14);
-    ctx.fillStyle = "#ffffff";
-    roundedRect(ctx, x, top, w, rowH, 14);
-    ctx.fill();
-    ctx.fillStyle = "#434c5b";
-    roundedRect(ctx, x, top, w, 24, 14);
-    ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 16px Arial";
-    ctx.fillText(record.location, x + 14, top + 17);
-    ctx.fillStyle = "#18202a";
-    ctx.font = "13px Arial";
-    const line1 = `${fmtDate(record.event_date)} | PSPL ${fmt(record.pspl_db_l, 1)} dB(L) | PVS ${fmt(record.peak_vector_sum_mm_s, 3)} mm/s`;
-    const line2 = `Tran ${fmt(record.channels.Tran.ppv_mm_s, 3)} | Vert ${fmt(record.channels.Vert.ppv_mm_s, 3)} | Long ${fmt(record.channels.Long.ppv_mm_s, 3)}`;
-    ctx.fillText(line1, x + 14, top + 45);
-    if (!compact) ctx.fillText(line2, x + 14, top + 63);
-  });
-}
-
-function maxPPV(record) {
-  return Math.max(record.peak_vector_sum_mm_s ?? 0, ...CHANNEL_ORDER.map((axis) => record.channels[axis].ppv_mm_s ?? 0));
-}
-
-async function readFiles(files) {
-  const parsed = [];
-  for (const file of files) {
-    const text = await file.text();
-    const result = Papa.parse(text, { header: true, skipEmptyLines: true });
-    if (result.errors.length) {
-      throw new Error(`Erro ao ler ${file.name}: ${result.errors[0].message}`);
-    }
-    for (const row of result.data) parsed.push(parseRecord(row, file.name));
-  }
-  return parsed;
-}
-
-function buildReport(records, threshold) {
-  const generatedAt = new Date().toISOString();
-  const client = els.clientInput.value.trim() || primaryClient(records);
-  const status = statusText(records, threshold);
-  const alertList = alertLocations(records, threshold);
+  if (rows.length < 5) throw new Error("Formato CSV insuficiente para leitura.");
+  const map = new Map(rows.map(([k, v]) => [k, v]));
+  const channels = ["Tran", "Vert", "Long"].map((axis) => ({
+    axis,
+    ppv_mm_s: parseNum(map.get(`${axis}PPV`)),
+    zc_freq_hz: parseNum(map.get(`${axis}ZCFreq`)),
+    reference_limit_mm_s: null,
+    compliant: null,
+  }));
+  channels.forEach((c) => { if (c.zc_freq_hz != null) c.reference_limit_mm_s = LIMIT_FORMULA(c.zc_freq_hz); if (c.ppv_mm_s != null && c.reference_limit_mm_s != null) c.compliant = c.ppv_mm_s <= c.reference_limit_mm_s; });
   return {
-    generatedAt,
-    client,
-    records,
-    overview: `Data do evento: ${records.some((r) => r.event_date) ? `${fmtDate(records[0].event_date)}${records.length > 1 ? ` a ${fmtDate(records[records.length - 1].event_date)}` : ""}` : "N/D"}. Cliente: ${client}. ${records.length} registros processados.${status ? ` ${status}` : ""}`,
-    conclusion: allCompliant(records)
-      ? "Todos os pontos analisados ficaram em conformidade com os limites configurados."
-      : `Ocorrência com necessidade de verificação manual. Pontos com alerta: ${alertList.join(", ")}.`,
-    status,
+    source_file: fileName,
+    location: map.get("TitleString1") || fileName.replace(/\.[^.]+$/, ""),
+    client: map.get("TitleString2") || null,
+    user_name: map.get("TitleString3") || null,
+    serial_number: map.get("SerialNumber") || null,
+    battery_level: map.get("BatteryLevel") || null,
+    unit_calibration: map.get("Calibration") || null,
+    file_name: map.get("FileName") || null,
+    scaled_distance: parseNum(map.get("ScaledDistance")),
+    distance_m: parseNum((map.get("ScaledDistance") || "").match(/\(([\d.,]+)\s*m/)?.[1]),
+    charge_kg: parseNum((map.get("ScaledDistance") || "").match(/,\s*([\d.,]+)\s*kg\)/)?.[1]),
+    raw_scaled_distance: map.get("ScaledDistance") || null,
+    event_date: parseDate(map.get("EventDate")),
+    pspl_db_l: parseNum(map.get("MicPSPL")),
+    microphone_zc_freq_hz: parseNum(map.get("MicZCFreq")),
+    peak_vector_sum_mm_s: parseNum(map.get("PeakVectorSum")),
+    channels: Object.fromEntries(channels.map((c) => [c.axis, c])),
+    pspl_compliant: parseNum(map.get("MicPSPL")) == null ? null : parseNum(map.get("MicPSPL")) <= 134,
   };
 }
 
-function refreshUI(report) {
-  state.report = report;
-  els.statusBox.value = report.status || "Sem status disponível.";
-  els.validationBox.textContent = `CSV(s) processados: ${state.files.map((f) => f.name).join(", ")}`;
-  els.summaryGrid.innerHTML = "";
-  for (const metric of summaryStats(report.records, Number(els.thresholdInput.value))) {
-    const node = document.createElement("div");
-    node.className = "metric";
-    node.innerHTML = `<div class="label">${metric.label}</div><div class="value">${metric.value}</div><div class="hint">${metric.hint}</div>`;
-    els.summaryGrid.appendChild(node);
+async function readFiles(files) {
+  const records = [];
+  for (const file of files) {
+    const text = await file.text();
+    try {
+      records.push(readCsvLike(text, file.name));
+    } catch {
+      if (!window.Papa) throw new Error(`Não foi possível ler ${file.name}.`);
+      const parsed = window.Papa.parse(text, { header: true, skipEmptyLines: true, delimiter: "", transformHeader: (h) => h });
+      if (parsed.errors.length) throw new Error(`Erro ao ler ${file.name}: ${parsed.errors[0].message}`);
+      for (const row of parsed.data) records.push(parseRecord(row, file.name));
+    }
   }
+  return records;
+}
+
+function drawLogo(ctx, x, y, w, h) {
+  const img = new Image();
+  img.src = "./assets/enaex-brand.png";
+  if (img.complete) ctx.drawImage(img, x, y, w, h);
+  else img.onload = () => ctx.drawImage(img, x, y, w, h);
+}
+
+function render(report) {
+  const canvas = els.reportCanvas;
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const W = 1240, H = 1754;
+  canvas.width = W * dpr; canvas.height = H * dpr; canvas.style.width = "100%"; canvas.style.height = "100%";
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#f6f7f8"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(42, 38, W - 84, H - 76);
+  ctx.fillStyle = "#e5231b"; ctx.fillRect(42, 38, 10, H - 76);
+  drawLogo(ctx, 72, 62, 220, 62);
+  ctx.fillStyle = "#0f1720"; ctx.font = "700 32px Arial"; ctx.fillText("Relatório Executivo de Sismografia", 72, 150);
+  ctx.fillStyle = "#667487"; ctx.font = "16px Arial"; ctx.fillText(`Cliente: ${report.client}  •  ${report.records.length} registros  •  ${new Date(report.generatedAt).toLocaleString("pt-BR")}`, 72, 182);
+
+  const card = (x, y, w, h, title, body, accent = "#eaecef") => {
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#d7dce2"; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(x, y, w, h, 18); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = accent; ctx.beginPath(); ctx.roundRect(x, y, w, 46, 18); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.font = "700 18px Arial"; ctx.fillText(title, x + 18, y + 30);
+    ctx.fillStyle = "#18202a"; body(x + 18, y + 70, w - 36, h - 86);
+  };
+
+  card(72, 230, W - 144, 116, "Escopo da campanha", (x, y, w) => { wrap(ctx, report.overview, x, y, w, 22); }, "#1c2240");
+  card(72, 368, W - 144, 130, "Conclusão técnica", (x, y, w) => { wrap(ctx, report.conclusion, x, y, w, 22); }, "#7bc51c");
+
+  const half = (W - 164) / 2;
+  card(72, 528, half, 330, "Sinais acústicos", (x, y, w) => {
+    ctx.fillStyle = "#f8fafb"; ctx.beginPath(); ctx.roundRect(x, y, w, 250, 16); ctx.fill();
+    list(ctx, report.records.map((r) => `${r.location}  •  PSPL ${fmt(r.pspl_db_l, 1)} dB(L)`), x + 16, y + 20, 22);
+  }, "#434c5b");
+  card(92 + half, 528, half, 330, "Vibração x Limite", (x, y, w) => {
+    ctx.fillStyle = "#f8fafb"; ctx.beginPath(); ctx.roundRect(x, y, w, 250, 16); ctx.fill();
+    list(ctx, report.records.map((r) => `${r.location}  •  PPV máx ${fmt(Math.max(r.peak_vector_sum_mm_s ?? 0, ...CHANNEL_ORDER.map((a) => r.channels[a].ppv_mm_s ?? 0)), 3)} mm/s`), x + 16, y + 20, 22);
+  }, "#7bc51c");
+
+  ctx.fillStyle = "#0f1720"; ctx.font = "700 24px Arial"; ctx.fillText("Pontos monitorados", 72, 904);
+  drawRows(ctx, report.records.slice(0, 3), 72, 938, W - 144, 152, false);
+  if (report.records.length > 3) {
+    ctx.fillStyle = "#0f1720"; ctx.font = "700 22px Arial"; ctx.fillText("Complementares", 72, 1138);
+    drawRows(ctx, report.records.slice(3), 72, 1170, W - 144, 110, true);
+  }
+  ctx.fillStyle = "#667487"; ctx.font = "14px Arial"; ctx.fillText("Base normativa: ABNT NBR 9653:2018.", 72, H - 44);
+}
+
+function wrap(ctx, text, x, y, w, lh) {
+  const words = String(text).split(/\s+/); let line = "";
+  words.forEach((word) => {
+    const test = line ? `${line} ${word}` : word;
+    if (ctx.measureText(test).width > w && line) { ctx.fillText(line, x, y); y += lh; line = word; } else line = test;
+  });
+  if (line) ctx.fillText(line, x, y);
+}
+
+function list(ctx, lines, x, y, lh) {
+  ctx.fillStyle = "#18202a"; ctx.font = "16px Arial";
+  lines.slice(0, 10).forEach((line, i) => ctx.fillText(line.length > 72 ? `${line.slice(0, 69)}...` : line, x, y + i * lh));
+}
+
+function drawRows(ctx, records, x, y, w, rowH, compact) {
+  records.forEach((r, i) => {
+    const top = y + i * (rowH + 14);
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "#d7dce2"; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(x, top, w, rowH, 14); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#434c5b"; ctx.beginPath(); ctx.roundRect(x, top, w, 26, 14); ctx.fill();
+    ctx.fillStyle = "#fff"; ctx.font = "700 15px Arial"; ctx.fillText(r.location, x + 14, top + 18);
+    ctx.fillStyle = "#18202a"; ctx.font = "13px Arial";
+    ctx.fillText(`${fmtDate(r.event_date)} | PSPL ${fmt(r.pspl_db_l, 1)} dB(L) | PVS ${fmt(r.peak_vector_sum_mm_s, 3)} mm/s`, x + 14, top + 49);
+    if (!compact) ctx.fillText(`Tran ${fmt(r.channels.Tran.ppv_mm_s, 3)} | Vert ${fmt(r.channels.Vert.ppv_mm_s, 3)} | Long ${fmt(r.channels.Long.ppv_mm_s, 3)}`, x + 14, top + 71);
+  });
+}
+
+function updateUI(report) {
+  state.report = report;
+  els.statusBox.value = report.status;
+  els.validationBox.textContent = `Arquivos: ${state.files.map((f) => f.name).join(" • ")}`;
   els.footerHint.textContent = `Gerado em ${new Date(report.generatedAt).toLocaleString("pt-BR")}`;
   els.recordHint.textContent = `${report.records.length} registros`;
-  drawReport(els.reportCanvas, report);
-  for (const btn of [els.pdfBtn, els.pngBtn, els.jsonBtn, els.txtBtn]) btn.disabled = false;
+  els.summaryGrid.innerHTML = [
+    ["Registros", report.records.length, "pontos processados"],
+    ["Alertas", alertLocations(report.records, Number(els.thresholdInput.value)).length, "acima do limite"],
+    ["Cliente", report.client, "cabeçalho do relatório"],
+    ["Conformidade", allCompliant(report.records) === false ? "Verificar" : "OK", "PSPL + vibração"],
+  ].map(([label, value, hint]) => `<div class="metric"><div class="label">${label}</div><div class="value">${value}</div><div class="hint">${hint}</div></div>`).join("");
+  render(report);
+  [els.pdfBtn, els.pngBtn, els.jsonBtn, els.txtBtn].forEach((b) => (b.disabled = false));
 }
 
-function download(filename, content, mime = "text/plain;charset=utf-8") {
+function download(name, content, mime = "text/plain;charset=utf-8") {
   const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
   a.click();
-  URL.revokeObjectURL(url);
 }
 
-async function exportPdf() {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
-  const canvas = els.reportCanvas;
-  const img = canvas.toDataURL("image/png");
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  pdf.addImage(img, "PNG", 0, 0, pageWidth, pageHeight);
-  pdf.save(`ENAEX_NSR-${new Date().toISOString().slice(0, 10)}.pdf`);
-}
-
-function exportPng() {
-  const link = document.createElement("a");
-  link.href = els.reportCanvas.toDataURL("image/png");
-  link.download = `ENAEX_NSR-${new Date().toISOString().slice(0, 10)}.png`;
-  link.click();
-}
-
-function exportJson() {
-  download(
-    `DADOS_EXTRAIDOS_${new Date().toISOString().slice(0, 10)}.json`,
-    JSON.stringify({
-      generated_at: state.report.generatedAt,
-      source_files: state.files.map((f) => f.name),
-      records: state.report.records,
-    }, null, 2),
-    "application/json;charset=utf-8",
-  );
-}
-
-function exportTxt() {
-  const lines = [
-    "📊 *MONITORAMENTO SISMOGRÁFICO - ENAEX*",
-    "---",
-    `🏢 *Cliente:* ${state.report.client}`,
-    `📅 *Data:* ${fmtDate(state.report.records[0]?.event_date)}`,
-    "",
-    state.report.status,
-    "",
-    ...state.report.records.map((record) => `• ${record.location} | PSPL ${fmt(record.pspl_db_l, 1)} dB(L) | PVS ${fmt(record.peak_vector_sum_mm_s, 3)} mm/s`),
-  ];
-  download(`NOTA_RAPIDA_WHATSAPP_${new Date().toISOString().slice(0, 10)}.txt`, lines.join("\n"));
-}
-
-async function handleGenerate() {
+async function generate() {
   if (!state.files.length) return;
   const records = await readFiles(state.files);
-  if (!records.length) throw new Error("Nenhum registro válido encontrado nos CSVs.");
-  const threshold = Number(els.thresholdInput.value) || DEFAULT_THRESHOLD;
-  const report = buildReport(records, threshold);
-  state.records = records;
-  els.generateBtn.disabled = false;
-  refreshUI(report);
+  if (!records.length) throw new Error("Nenhum registro válido encontrado.");
+  const threshold = Number(els.thresholdInput.value) || 0.8;
+  const client = els.clientInput.value.trim() || primaryClient(records);
+  const report = {
+    generatedAt: new Date().toISOString(),
+    client,
+    records,
+    status: statusText(records, threshold),
+    overview: `Cliente ${client}. ${records.length} registros processados. ${statusText(records, threshold)}`,
+    conclusion: allCompliant(records) === false
+      ? `Ocorrência com necessidade de verificação manual. Pontos com alerta: ${alertLocations(records, threshold).join(", ")}.`
+      : "Todos os pontos analisados ficaram em conformidade com os limites configurados.",
+  };
+  updateUI(report);
 }
 
 function setFiles(files) {
-  state.files = [...files];
-  updateFileList();
+  state.files = [...files].filter((f) => f.name.toLowerCase().endsWith(".csv"));
+  els.fileList.innerHTML = state.files.map((f) => `<div class="file-chip"><span>${f.name}</span><span>${Math.round(f.size / 1024)} KB</span></div>`).join("");
   els.generateBtn.disabled = !state.files.length;
 }
 
 els.csvInput.addEventListener("change", () => setFiles(els.csvInput.files || []));
-els.generateBtn.addEventListener("click", async () => {
-  try {
-    await handleGenerate();
-  } catch (error) {
-    els.statusBox.value = String(error.message || error);
-    els.validationBox.textContent = "Falha ao processar os CSVs.";
-  }
+els.generateBtn.addEventListener("click", async () => { try { await generate(); } catch (e) { els.statusBox.value = e.message; els.validationBox.textContent = "Falha ao processar os CSVs."; } });
+els.pdfBtn.addEventListener("click", async () => {
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
+  pdf.addImage(els.reportCanvas.toDataURL("image/png"), "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+  pdf.save(`ENAEX_NSR-${new Date().toISOString().slice(0, 10)}.pdf`);
 });
-els.pdfBtn.addEventListener("click", exportPdf);
-els.pngBtn.addEventListener("click", exportPng);
-els.jsonBtn.addEventListener("click", exportJson);
-els.txtBtn.addEventListener("click", exportTxt);
+els.pngBtn.addEventListener("click", () => { const a = document.createElement("a"); a.href = els.reportCanvas.toDataURL("image/png"); a.download = `ENAEX_NSR-${new Date().toISOString().slice(0, 10)}.png`; a.click(); });
+els.jsonBtn.addEventListener("click", () => download(`DADOS_EXTRAIDOS_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ generated_at: state.report.generatedAt, source_files: state.files.map((f) => f.name), records: state.report.records }, null, 2), "application/json;charset=utf-8"));
+els.txtBtn.addEventListener("click", () => download(`NOTA_RAPIDA_WHATSAPP_${new Date().toISOString().slice(0, 10)}.txt`, ["📊 *MONITORAMENTO SISMOGRÁFICO - ENAEX*","---",`🏢 *Cliente:* ${state.report.client}`,`📅 *Data:* ${fmtDate(state.report.records[0]?.event_date)}`,"",state.report.status,"",...state.report.records.map((r) => `• ${r.location} | PSPL ${fmt(r.pspl_db_l, 1)} dB(L) | PVS ${fmt(r.peak_vector_sum_mm_s, 3)} mm/s`)].join("\n")));
 
-["dragenter", "dragover"].forEach((eventName) => {
-  els.dropZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    els.dropZone.classList.add("dragover");
-  });
-});
-["dragleave", "drop"].forEach((eventName) => {
-  els.dropZone.addEventListener(eventName, (event) => {
-    event.preventDefault();
-    els.dropZone.classList.remove("dragover");
-  });
-});
-els.dropZone.addEventListener("drop", (event) => {
-  const files = [...(event.dataTransfer?.files || [])].filter((file) => file.name.toLowerCase().endsWith(".csv"));
-  setFiles(files);
-});
-
+["dragenter","dragover"].forEach((ev) => els.dropZone.addEventListener(ev, (e) => { e.preventDefault(); els.dropZone.classList.add("dragover"); }));
+["dragleave","drop"].forEach((ev) => els.dropZone.addEventListener(ev, (e) => { e.preventDefault(); els.dropZone.classList.remove("dragover"); }));
+els.dropZone.addEventListener("drop", (e) => setFiles(e.dataTransfer.files || []));
 els.statusBox.value = "Aguardando upload de CSV.";
 els.validationBox.textContent = "Envie um ou mais CSVs para liberar os botões de exportação.";
