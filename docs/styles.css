@@ -26,12 +26,12 @@ body {
 
 .shell { max-width: 1460px; margin: 0 auto; padding: 28px; }
 .hero {
-  display: grid; grid-template-columns: 150px 1fr auto; gap: 22px; align-items: center;
+  display: grid; grid-template-columns: 104px 1fr auto; gap: 22px; align-items: center;
   padding: 22px 24px; border: 1px solid var(--line); border-radius: var(--radius);
   background: #fff; box-shadow: 0 6px 18px rgba(15, 23, 32, .04);
 }
 .brandmark {
-  width: 112px; max-width: 100%; display: block;
+  width: 72px; max-width: 100%; display: block;
 }
 .hero h1 { margin: 0; font-size: 24px; letter-spacing: -0.02em; }
 .hero p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
