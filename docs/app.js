@@ -60,7 +60,7 @@ function parseRecord(row, sourceFile) {
 }
 
 function primaryClient(records) {
-  return records.find((r) => r.user_name || r.client)?.user_name || records.find((r) => r.client)?.client || "ENAEX";
+  return records.find((r) => r.user_name || r.client)?.user_name || records.find((r) => r.client)?.client || "OPENBLAST";
 }
 
 function alertLocations(records, threshold) {
@@ -135,7 +135,7 @@ async function readFiles(files) {
 
 function drawLogo(ctx, x, y, w, h) {
   const img = new Image();
-  img.src = "./assets/enaex-brand.png";
+  img.src = "./assets/openblast-brand.png";
   if (img.complete) ctx.drawImage(img, x, y, w, h);
   else img.onload = () => ctx.drawImage(img, x, y, w, h);
 }
@@ -264,11 +264,11 @@ els.pdfBtn.addEventListener("click", async () => {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: "a4" });
   pdf.addImage(els.reportCanvas.toDataURL("image/png"), "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-  pdf.save(`ENAEX_NSR-${new Date().toISOString().slice(0, 10)}.pdf`);
+  pdf.save(`OPENBLAST_NSR-${new Date().toISOString().slice(0, 10)}.pdf`);
 });
-els.pngBtn.addEventListener("click", () => { const a = document.createElement("a"); a.href = els.reportCanvas.toDataURL("image/png"); a.download = `ENAEX_NSR-${new Date().toISOString().slice(0, 10)}.png`; a.click(); });
+els.pngBtn.addEventListener("click", () => { const a = document.createElement("a"); a.href = els.reportCanvas.toDataURL("image/png"); a.download = `OPENBLAST_NSR-${new Date().toISOString().slice(0, 10)}.png`; a.click(); });
 els.jsonBtn.addEventListener("click", () => download(`DADOS_EXTRAIDOS_${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ generated_at: state.report.generatedAt, source_files: state.files.map((f) => f.name), records: state.report.records }, null, 2), "application/json;charset=utf-8"));
-els.txtBtn.addEventListener("click", () => download(`NOTA_RAPIDA_WHATSAPP_${new Date().toISOString().slice(0, 10)}.txt`, ["📊 *MONITORAMENTO SISMOGRÁFICO - ENAEX*","---",`🏢 *Cliente:* ${state.report.client}`,`📅 *Data:* ${fmtDate(state.report.records[0]?.event_date)}`,"",state.report.status,"",...state.report.records.map((r) => `• ${r.location} | PSPL ${fmt(r.pspl_db_l, 1)} dB(L) | PVS ${fmt(r.peak_vector_sum_mm_s, 3)} mm/s`)].join("\n")));
+els.txtBtn.addEventListener("click", () => download(`NOTA_RAPIDA_WHATSAPP_${new Date().toISOString().slice(0, 10)}.txt`, ["📊 *MONITORAMENTO SISMOGRÁFICO - OPENBLAST*","---",`🏢 *Cliente:* ${state.report.client}`,`📅 *Data:* ${fmtDate(state.report.records[0]?.event_date)}`,"",state.report.status,"",...state.report.records.map((r) => `• ${r.location} | PSPL ${fmt(r.pspl_db_l, 1)} dB(L) | PVS ${fmt(r.peak_vector_sum_mm_s, 3)} mm/s`)].join("\n")));
 
 ["dragenter","dragover"].forEach((ev) => els.dropZone.addEventListener(ev, (e) => { e.preventDefault(); els.dropZone.classList.add("dragover"); }));
 ["dragleave","drop"].forEach((ev) => els.dropZone.addEventListener(ev, (e) => { e.preventDefault(); els.dropZone.classList.remove("dragover"); }));

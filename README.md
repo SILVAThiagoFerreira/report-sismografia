@@ -1,4 +1,4 @@
-# Report Sismografia Enaex
+# Report Sismografia OpenBlast
 
 Aplicação web estática para importar CSVs de sismografia, validar os dados e gerar um relatório visual no mesmo estilo do material anterior.
 

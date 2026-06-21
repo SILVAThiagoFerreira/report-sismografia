@@ -44,7 +44,7 @@ def build_whatsapp_message(
     status_text = _vibration_status_text(records, vibration_alert_threshold_mm_s)
     
     lines: list[str] = [
-        "📊 *MONITORAMENTO SISMOGRÁFICO - ENAEX*",
+        "📊 *MONITORAMENTO SISMOGRÁFICO - OPENBLAST*",
         "---",
         f"🏢 *Cliente:* {client}",
         f"📅 *Data:* {header_date}",
@@ -75,7 +75,7 @@ def build_whatsapp_message(
         "🖼️ _Consulte a imagem anexa para mais detalhes._",
         "",
         "Atenciosamente,",
-        "*Enaex*"
+        "*OpenBlast*"
     ])
 
     return "\n".join(lines)

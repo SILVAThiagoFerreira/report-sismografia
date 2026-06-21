@@ -36,17 +36,17 @@ from .models import SismogramRecord, any_record_has_vibration_alert, get_primary
 PAGE_SIZE = A4
 PAGE_WIDTH, PAGE_HEIGHT = PAGE_SIZE
 
-ENAEX_RED = colors.HexColor("#E5231B")
-ENAEX_DARK = colors.HexColor("#434C5B")
-ENAEX_GREEN = colors.HexColor("#7BC51C")
-ENAEX_LIGHT = colors.HexColor("#F1F1F1")
-ENAEX_NAVY = colors.HexColor("#1C2240")
-ENAEX_WHITE = colors.white
-ENAEX_TEXT = colors.HexColor("#18202A")
+OPENBLAST_RED = colors.HexColor("#E5231B")
+OPENBLAST_DARK = colors.HexColor("#434C5B")
+OPENBLAST_GREEN = colors.HexColor("#7BC51C")
+OPENBLAST_LIGHT = colors.HexColor("#F1F1F1")
+OPENBLAST_NAVY = colors.HexColor("#1C2240")
+OPENBLAST_WHITE = colors.white
+OPENBLAST_TEXT = colors.HexColor("#18202A")
 
-ENAEX_RED_HEX = "#E5231B"
-ENAEX_DARK_HEX = "#434C5B"
-ENAEX_GREEN_HEX = "#7BC51C"
+OPENBLAST_RED_HEX = "#E5231B"
+OPENBLAST_DARK_HEX = "#434C5B"
+OPENBLAST_GREEN_HEX = "#7BC51C"
 
 MARGIN_X = 10 * mm
 CONTENT_WIDTH = PAGE_WIDTH - (2 * MARGIN_X)
@@ -72,7 +72,7 @@ def generate_report(
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
 
     pdf = canvas.Canvas(str(pdf_path), pagesize=PAGE_SIZE)
-    pdf.setTitle("Relatório OnePage de Monitoramento Sismográfico - Enaex")
+    pdf.setTitle("Relatório OnePage de Monitoramento Sismográfico - OpenBlast")
     logo = _load_logo(logo_path)
     status_text = _vibration_status_text(records, vibration_alert_threshold_mm_s)
     summary_records = records[:max_records]
@@ -155,7 +155,7 @@ def _draw_onepage_report(
         23 * mm,
         "Escopo da Campanha",
         _overview_lines(all_records, generated_at, status_text),
-        accent_color=ENAEX_GREEN,
+        accent_color=OPENBLAST_GREEN,
     )
     _draw_table_box(
         pdf,
@@ -165,7 +165,7 @@ def _draw_onepage_report(
         24 * mm,
         "Conclusão Técnica",
         _build_conclusion_table(all_records, CONTENT_WIDTH - 8 * mm, 24 * mm - 9.8 * mm),
-        accent_color=ENAEX_GREEN if _overall_batch_compliance(all_records) else ENAEX_RED,
+        accent_color=OPENBLAST_GREEN if _overall_batch_compliance(all_records) else OPENBLAST_RED,
     )
 
     _draw_chart_panel(
@@ -198,7 +198,7 @@ def _draw_onepage_report(
         y = base_y - index * (row_height + row_gap)
         _draw_record_row(pdf, record, MARGIN_X, y, CONTENT_WIDTH, row_height)
 
-    pdf.setFillColor(ENAEX_DARK)
+    pdf.setFillColor(OPENBLAST_DARK)
     pdf.setFont("Helvetica", 7.2)
     norma_text = "Base normativa: ABNT NBR 9653:2018."
     norma_w = pdf.stringWidth(norma_text, "Helvetica", 7.2)
@@ -236,7 +236,7 @@ def _draw_additional_record_pages(
             y = rows_start_y - index * (row_height + row_gap)
             _draw_record_row(pdf, record, MARGIN_X, y, CONTENT_WIDTH, row_height)
 
-        pdf.setFillColor(ENAEX_DARK)
+        pdf.setFillColor(OPENBLAST_DARK)
         pdf.setFont("Helvetica", 7.2)
         pdf.drawString(MARGIN_X + 10 * mm, 12 * mm, "Continuação do resumo executivo.")
 
@@ -249,7 +249,7 @@ def _draw_appendix_header(
     total_records: int,
     generated_at: datetime,
 ) -> None:
-    pdf.setFillColor(ENAEX_RED)
+    pdf.setFillColor(OPENBLAST_RED)
     pdf.setFont("Helvetica-Bold", 13.2)
     pdf.drawString(MARGIN_X, PAGE_HEIGHT - 25 * mm, "REGISTROS COMPLEMENTARES")
 
@@ -278,12 +278,12 @@ def _draw_title_card(pdf: canvas.Canvas, records: list[SismogramRecord], generat
     height = 30 * mm
 
     _draw_shadow_card(pdf, x, y, width, height)
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.roundRect(x, y, width, height, 5, fill=1, stroke=0)
     pdf.setFillColor(colors.HexColor("#C8C8C8"))
     pdf.roundRect(x, y + height - 4 * mm, width, 4 * mm, 5, fill=1, stroke=0)
 
-    pdf.setFillColor(ENAEX_RED)
+    pdf.setFillColor(OPENBLAST_RED)
     pdf.setFont("Helvetica-Bold", 13.5)
     pdf.drawString(x + 7 * mm, y + 18 * mm, "MONITORAMENTO SISMOGRÁFICO")
 
@@ -315,24 +315,24 @@ def _draw_box(
     accent_color,
 ) -> None:
     _draw_shadow_card(pdf, x, y, width, height)
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.roundRect(x, y, width, height, 4, fill=1, stroke=0)
     pdf.setFillColor(accent_color)
     pdf.roundRect(x, y + height - 7.2 * mm, width, 7.2 * mm, 4, fill=1, stroke=0)
 
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.setFont("Helvetica-Bold", 9.8)
     pdf.drawString(x + 4 * mm, y + height - 5.0 * mm, title)
 
-    pdf.setFillColor(ENAEX_TEXT)
+    pdf.setFillColor(OPENBLAST_TEXT)
     text_y = y + height - 10.8 * mm
     for line in lines[:4]:
         if line.startswith("⚠️"):
-            pdf.setFillColor(ENAEX_RED)
+            pdf.setFillColor(OPENBLAST_RED)
         elif line.startswith("✅"):
-            pdf.setFillColor(ENAEX_GREEN)
+            pdf.setFillColor(OPENBLAST_GREEN)
         else:
-            pdf.setFillColor(ENAEX_TEXT)
+            pdf.setFillColor(OPENBLAST_TEXT)
         _draw_fit_text(pdf, line, x + 4 * mm, text_y, width - 8 * mm, "Helvetica", 7.8, 6.7)
         text_y -= 3.8 * mm
 
@@ -347,12 +347,12 @@ def _draw_chart_panel(
     chart_image: io.BytesIO,
 ) -> None:
     _draw_shadow_card(pdf, x, y, width, height)
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.roundRect(x, y, width, height, 4, fill=1, stroke=0)
-    pdf.setFillColor(ENAEX_GREEN)
+    pdf.setFillColor(OPENBLAST_GREEN)
     pdf.roundRect(x, y + height - 7.2 * mm, width, 7.2 * mm, 4, fill=1, stroke=0)
 
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.setFont("Helvetica-Bold", 9.6)
     pdf.drawString(x + 4 * mm, y + height - 5.0 * mm, title)
     pdf.drawImage(
@@ -378,12 +378,12 @@ def _draw_table_box(
     accent_color,
 ) -> None:
     _draw_shadow_card(pdf, x, y, width, height)
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.roundRect(x, y, width, height, 4, fill=1, stroke=0)
     pdf.setFillColor(accent_color)
     pdf.roundRect(x, y + height - 7.2 * mm, width, 7.2 * mm, 4, fill=1, stroke=0)
 
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.setFont("Helvetica-Bold", 9.8)
     pdf.drawString(x + 4 * mm, y + height - 5.0 * mm, title)
 
@@ -411,12 +411,12 @@ def _draw_record_row(
     long = record.get_channel("Long")
 
     _draw_shadow_card(pdf, x, y, width, height)
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.roundRect(x, y, width, height, 4, fill=1, stroke=0)
-    pdf.setFillColor(ENAEX_DARK)
+    pdf.setFillColor(OPENBLAST_DARK)
     pdf.roundRect(x, y + height - header_h, width, header_h, 4, fill=1, stroke=0)
 
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     _draw_fit_text(pdf, record.location, x + 4 * mm, y + height - 4.1 * mm, 88 * mm, "Helvetica-Bold", 8.7, 7.4)
 
     table = _build_record_table(
@@ -433,9 +433,9 @@ def _draw_record_row(
     compliant = record.overall_compliant()
     badge_x = x + width - badge_w - 4 * mm
     badge_y = y + (height - header_h - badge_h) / 2
-    pdf.setFillColor(ENAEX_GREEN if compliant else ENAEX_RED)
+    pdf.setFillColor(OPENBLAST_GREEN if compliant else OPENBLAST_RED)
     pdf.roundRect(badge_x, badge_y, badge_w, badge_h, 3, fill=1, stroke=0)
-    pdf.setFillColor(ENAEX_WHITE)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.setFont("Helvetica-Bold", 7.0)
     pdf.drawCentredString(
         badge_x + (badge_w / 2),
@@ -445,9 +445,9 @@ def _draw_record_row(
 
 
 def _draw_base_background(pdf: canvas.Canvas, logo: ImageReader | None) -> None:
-    pdf.setFillColor(ENAEX_LIGHT)
+    pdf.setFillColor(OPENBLAST_LIGHT)
     pdf.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, fill=1, stroke=0)
-    pdf.setFillColor(ENAEX_RED)
+    pdf.setFillColor(OPENBLAST_RED)
     pdf.rect(0, 0, PAGE_WIDTH, 1.8 * mm, fill=1, stroke=0)
 
     if logo:
@@ -467,7 +467,7 @@ def _draw_dna_badge(pdf: canvas.Canvas) -> None:
 
     pdf.saveState()
     # Fundo do badge com borda sutil
-    pdf.setFillColor(ENAEX_NAVY)
+    pdf.setFillColor(OPENBLAST_NAVY)
     pdf.setStrokeColor(colors.HexColor("#667487"))
     pdf.setLineWidth(0.3)
     pdf.roundRect(badge_x, badge_y, badge_w, badge_h, 2.5, fill=1, stroke=1)
@@ -478,14 +478,14 @@ def _draw_dna_badge(pdf: canvas.Canvas) -> None:
     gap = 2.8 * mm
     dna_text = "DNA"
     dot_text = "•"
-    enaex_text = "ENAEX"
+    openblast_text = "OPENBLAST"
 
     group_w = (
         pdf.stringWidth(dna_text, font_name, font_size)
         + gap
         + pdf.stringWidth(dot_text, font_name, font_size)
         + gap
-        + pdf.stringWidth(enaex_text, font_name, font_size)
+        + pdf.stringWidth(openblast_text, font_name, font_size)
     )
     start_x = badge_x + (badge_w - group_w) / 2
     # Ajuste para centralização vertical (baseline)
@@ -496,15 +496,15 @@ def _draw_dna_badge(pdf: canvas.Canvas) -> None:
     pdf.setFillColor(colors.HexColor("#FDB515"))
     pdf.drawString(start_x, baseline_y, dna_text)
 
-    # Ponto em Verde Enaex (mais harmônico que o teal anterior)
+    # Ponto em Verde OpenBlast (mais harmônico que o teal anterior)
     start_x += pdf.stringWidth(dna_text, font_name, font_size) + gap
-    pdf.setFillColor(ENAEX_GREEN)
+    pdf.setFillColor(OPENBLAST_GREEN)
     pdf.drawString(start_x, baseline_y, dot_text)
 
-    # ENAEX em Branco para contraste superior no fundo Navy
+    # OPENBLAST em Branco para contraste superior no fundo Navy
     start_x += pdf.stringWidth(dot_text, font_name, font_size) + gap
-    pdf.setFillColor(ENAEX_WHITE)
-    pdf.drawString(start_x, baseline_y, enaex_text)
+    pdf.setFillColor(OPENBLAST_WHITE)
+    pdf.drawString(start_x, baseline_y, openblast_text)
     pdf.restoreState()
 
 
@@ -605,7 +605,7 @@ def _build_record_table(
                 ("RIGHTPADDING", (0, 0), (-1, -1), 3.0),
                 ("TOPPADDING", (0, 0), (-1, -1), 1.5),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
-                ("TEXTCOLOR", (0, 0), (-1, -1), ENAEX_TEXT),
+                ("TEXTCOLOR", (0, 0), (-1, -1), OPENBLAST_TEXT),
             ]
         )
     )
@@ -625,14 +625,14 @@ def _build_conclusion_table(records: list[SismogramRecord], width: float, height
         fontName="Helvetica",
         fontSize=6.2,
         leading=7.0,
-        textColor=ENAEX_TEXT,
+        textColor=OPENBLAST_TEXT,
     )
     label_style = ParagraphStyle(
         "conclusion_label",
         fontName="Helvetica-Bold",
         fontSize=6.2,
         leading=7.0,
-        textColor=ENAEX_TEXT,
+        textColor=OPENBLAST_TEXT,
     )
 
     data = [
@@ -711,8 +711,8 @@ def _build_pspl_chart(records: list[SismogramRecord]) -> io.BytesIO:
     chart_background = "#FFFFFF"
     grid_color = "#D7D7D7"
     axis_color = "#2E2E2E"
-    limit_color = ENAEX_DARK_HEX
-    marker_styles = [("o", ENAEX_DARK_HEX), ("s", "#2E86AB"), ("^", ENAEX_GREEN_HEX)]
+    limit_color = OPENBLAST_DARK_HEX
+    marker_styles = [("o", OPENBLAST_DARK_HEX), ("s", "#2E86AB"), ("^", OPENBLAST_GREEN_HEX)]
 
     figure, axis = plt.subplots(figsize=(4.8, 3.0), dpi=320)
     figure.patch.set_facecolor(chart_background)
@@ -817,13 +817,13 @@ def _build_ppv_chart(records: list[SismogramRecord]) -> io.BytesIO:
     figure, axis = plt.subplots(figsize=(4.2, 3.0), dpi=320)
     curve_x = [4.0, 15.0, 40.0, 1000.0]
     curve_y = [15.0, 20.0, 50.0, 50.0]
-    axis.plot(curve_x, curve_y, color=ENAEX_RED_HEX, linewidth=1.8)
+    axis.plot(curve_x, curve_y, color=OPENBLAST_RED_HEX, linewidth=1.8)
     for guide_x in [4.0, 15.0, 40.0]:
-        axis.axvline(guide_x, color=ENAEX_RED_HEX, linewidth=0.8, linestyle="--", alpha=0.35)
+        axis.axvline(guide_x, color=OPENBLAST_RED_HEX, linewidth=0.8, linestyle="--", alpha=0.35)
     for guide_y in [15.0, 20.0, 50.0]:
-        axis.axhline(guide_y, color=ENAEX_RED_HEX, linewidth=0.8, linestyle="--", alpha=0.25)
+        axis.axhline(guide_y, color=OPENBLAST_RED_HEX, linewidth=0.8, linestyle="--", alpha=0.25)
 
-    marker_styles = [("o", ENAEX_DARK_HEX), ("s", "#2E86AB"), ("^", ENAEX_GREEN_HEX)]
+    marker_styles = [("o", OPENBLAST_DARK_HEX), ("s", "#2E86AB"), ("^", OPENBLAST_GREEN_HEX)]
     plotted_points: list[tuple[float, float, str, str]] = []
     for index, record in enumerate(records):
         best_channel = record.max_channel()
@@ -848,7 +848,7 @@ def _build_ppv_chart(records: list[SismogramRecord]) -> io.BytesIO:
     axis.set_xlabel("Frequência (Hz)", fontsize=6.2)
     axis.set_ylabel("PPV (mm/s)", fontsize=6.2)
     _draw_ppv_point_labels(axis, plotted_points)
-    axis.text(760, 52, "Limite ABNT", fontsize=5.6, color=ENAEX_RED_HEX, ha="right")
+    axis.text(760, 52, "Limite ABNT", fontsize=5.6, color=OPENBLAST_RED_HEX, ha="right")
 
     image = io.BytesIO()
     figure.tight_layout(pad=0.25)

@@ -29,7 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--logo",
         default=None,
-        help="Caminho para a logo da Enaex",
+        help="Caminho para a logo da OpenBlast",
     )
     parser.add_argument("--interval", type=int, default=None, help="Intervalo em segundos para o modo watch")
     parser.add_argument("--config", default=str(ROOT_DIR / "config.json"), help="Arquivo de configuração externo")

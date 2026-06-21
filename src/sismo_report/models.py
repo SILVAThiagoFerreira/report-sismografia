@@ -102,7 +102,7 @@ def get_primary_client(records: list[SismogramRecord]) -> str:
             return normalize_client_name(record.user_name)
         if record.client:
             return normalize_client_name(record.client)
-    return "ENAEX"
+    return "OPENBLAST"
 
 
 def any_record_has_vibration_alert(records: list[SismogramRecord], threshold_mm_s: float) -> bool:

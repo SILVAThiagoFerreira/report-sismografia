@@ -38,8 +38,8 @@ def generate_outputs(
     archive_dir.mkdir(parents=True, exist_ok=True)
     _cleanup_legacy_root_outputs(outputs_path, archive_dir)
 
-    archived_pdf = archive_dir / f"ENAEX_NSR-{event_slug}.pdf"
-    archived_png = archive_dir / f"ENAEX_NSR-{event_slug}.png"
+    archived_pdf = archive_dir / f"OPENBLAST_NSR-{event_slug}.pdf"
+    archived_png = archive_dir / f"OPENBLAST_NSR-{event_slug}.png"
     archived_txt = archive_dir / f"NOTA_RAPIDA_WHATSAPP_{event_slug}.txt"
     archived_json = archive_dir / f"DADOS_EXTRAIDOS_{event_slug}.json"
 

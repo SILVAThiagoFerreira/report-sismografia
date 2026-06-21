@@ -1,6 +1,6 @@
 {
   "system": {
-    "name": "Report Sismografia Enaex",
+    "name": "Report Sismografia OpenBlast",
     "version": "1.0.0"
   },
   "paths": {
@@ -9,7 +9,7 @@
     "logs_dir": "logs",
     "legacy_input_dir": "INPUTS",
     "legacy_output_dir": "OUTPUTS",
-    "logo_path": "ICONE/Enaex Stronger Bonds Logo.png"
+    "logo_path": "ICONE/openblast-logo.png"
   },
   "execution": {
     "watch_interval_seconds": 5,

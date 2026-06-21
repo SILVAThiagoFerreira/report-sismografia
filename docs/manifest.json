@@ -1,6 +1,6 @@
 {
-  "name": "Report Sismografia Enaex",
-  "short_name": "Report Enaex",
+  "name": "Report Sismografia OpenBlast",
+  "short_name": "Report OpenBlast",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F1F1F1",
