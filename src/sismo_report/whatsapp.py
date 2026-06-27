@@ -50,7 +50,7 @@ def build_whatsapp_message(
         f"📅 *Data:* {header_date}",
         "",
         "Prezados,",
-        "Seguem os níveis de vibração e pressão acústica registrados no evento. Os detalhes técnicos completos podem ser consultados no relatório (imagem) em anexo.",
+        "Seguem os níveis de vibração e pressão acústica do evento. Detalhes técnicos no relatório anexo.",
     ]
 
     if status_text is not None:
@@ -70,9 +70,7 @@ def build_whatsapp_message(
     
     lines.extend([
         "---",
-        "✅ *STATUS:* Todos os parâmetros estão em conformidade com a *NBR 9653:2018*." if all_compliant else "⚠️ *STATUS:* Níveis acima do limite normativo. Favor verificar relatório detalhado.",
-        "",
-        "🖼️ _Consulte a imagem anexa para mais detalhes._",
+        "✅ *STATUS:* parâmetros em conformidade com a *NBR 9653:2018*." if all_compliant else "⚠️ *STATUS:* níveis acima do limite normativo. Verifique o relatório detalhado.",
         "",
         "Atenciosamente,",
         "*OpenBlast*"

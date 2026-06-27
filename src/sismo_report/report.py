@@ -36,17 +36,22 @@ from .models import SismogramRecord, any_record_has_vibration_alert, get_primary
 PAGE_SIZE = A4
 PAGE_WIDTH, PAGE_HEIGHT = PAGE_SIZE
 
-OPENBLAST_RED = colors.HexColor("#E5231B")
-OPENBLAST_DARK = colors.HexColor("#434C5B")
-OPENBLAST_GREEN = colors.HexColor("#7BC51C")
-OPENBLAST_LIGHT = colors.HexColor("#F1F1F1")
-OPENBLAST_NAVY = colors.HexColor("#1C2240")
+OPENBLAST_RED = colors.HexColor("#E20613")
+OPENBLAST_DARK = colors.HexColor("#38424B")
+OPENBLAST_GREEN = colors.HexColor("#8B949E")
+OPENBLAST_LIGHT = colors.HexColor("#FFFFFF")
+OPENBLAST_NAVY = colors.HexColor("#38424B")
 OPENBLAST_WHITE = colors.white
-OPENBLAST_TEXT = colors.HexColor("#18202A")
+OPENBLAST_TEXT = colors.HexColor("#38424B")
 
-OPENBLAST_RED_HEX = "#E5231B"
-OPENBLAST_DARK_HEX = "#434C5B"
-OPENBLAST_GREEN_HEX = "#7BC51C"
+ENAEX_MUTED = colors.HexColor("#6C7680")
+ENAEX_LINE = colors.HexColor("#E3E6EA")
+ENAEX_LINE_STRONG = colors.HexColor("#D2D6DB")
+ENAEX_SURFACE_QUIET = colors.HexColor("#F5F6F7")
+
+OPENBLAST_RED_HEX = "#E20613"
+OPENBLAST_DARK_HEX = "#38424B"
+OPENBLAST_GREEN_HEX = "#8B949E"
 
 MARGIN_X = 10 * mm
 CONTENT_WIDTH = PAGE_WIDTH - (2 * MARGIN_X)
@@ -155,7 +160,7 @@ def _draw_onepage_report(
         23 * mm,
         "Escopo da Campanha",
         _overview_lines(all_records, generated_at, status_text),
-        accent_color=OPENBLAST_GREEN,
+        accent_color=OPENBLAST_RED,
     )
     _draw_table_box(
         pdf,
@@ -253,7 +258,7 @@ def _draw_appendix_header(
     pdf.setFont("Helvetica-Bold", 13.2)
     pdf.drawString(MARGIN_X, PAGE_HEIGHT - 25 * mm, "REGISTROS COMPLEMENTARES")
 
-    pdf.setFillColor(colors.HexColor("#667487"))
+    pdf.setFillColor(ENAEX_MUTED)
     pdf.setFont("Helvetica", 8.2)
     pdf.drawString(
         MARGIN_X,
@@ -280,14 +285,14 @@ def _draw_title_card(pdf: canvas.Canvas, records: list[SismogramRecord], generat
     _draw_shadow_card(pdf, x, y, width, height)
     pdf.setFillColor(OPENBLAST_WHITE)
     pdf.roundRect(x, y, width, height, 5, fill=1, stroke=0)
-    pdf.setFillColor(colors.HexColor("#C8C8C8"))
+    pdf.setFillColor(ENAEX_LINE_STRONG)
     pdf.roundRect(x, y + height - 4 * mm, width, 4 * mm, 5, fill=1, stroke=0)
 
     pdf.setFillColor(OPENBLAST_RED)
     pdf.setFont("Helvetica-Bold", 13.5)
     pdf.drawString(x + 7 * mm, y + 18 * mm, "MONITORAMENTO SISMOGRÁFICO")
 
-    pdf.setFillColor(colors.HexColor("#667487"))
+    pdf.setFillColor(ENAEX_MUTED)
     _draw_fit_text(
         pdf,
         get_primary_client(records),
@@ -349,7 +354,7 @@ def _draw_chart_panel(
     _draw_shadow_card(pdf, x, y, width, height)
     pdf.setFillColor(OPENBLAST_WHITE)
     pdf.roundRect(x, y, width, height, 4, fill=1, stroke=0)
-    pdf.setFillColor(OPENBLAST_GREEN)
+    pdf.setFillColor(OPENBLAST_RED)
     pdf.roundRect(x, y + height - 7.2 * mm, width, 7.2 * mm, 4, fill=1, stroke=0)
 
     pdf.setFillColor(OPENBLAST_WHITE)
@@ -466,13 +471,11 @@ def _draw_dna_badge(pdf: canvas.Canvas) -> None:
     badge_y = 10.8 * mm
 
     pdf.saveState()
-    # Fundo do badge com borda sutil
     pdf.setFillColor(OPENBLAST_NAVY)
-    pdf.setStrokeColor(colors.HexColor("#667487"))
+    pdf.setStrokeColor(ENAEX_MUTED)
     pdf.setLineWidth(0.3)
     pdf.roundRect(badge_x, badge_y, badge_w, badge_h, 2.5, fill=1, stroke=1)
 
-    # Configuração de texto
     font_name = "Helvetica-Bold"
     font_size = 8.2
     gap = 2.8 * mm
@@ -488,20 +491,16 @@ def _draw_dna_badge(pdf: canvas.Canvas) -> None:
         + pdf.stringWidth(openblast_text, font_name, font_size)
     )
     start_x = badge_x + (badge_w - group_w) / 2
-    # Ajuste para centralização vertical (baseline)
     baseline_y = badge_y + 3.0 * mm
 
     pdf.setFont(font_name, font_size)
-    # DNA em Amarelo/Dourado
-    pdf.setFillColor(colors.HexColor("#FDB515"))
+    pdf.setFillColor(OPENBLAST_RED)
     pdf.drawString(start_x, baseline_y, dna_text)
 
-    # Ponto em Verde OpenBlast (mais harmônico que o teal anterior)
     start_x += pdf.stringWidth(dna_text, font_name, font_size) + gap
-    pdf.setFillColor(OPENBLAST_GREEN)
+    pdf.setFillColor(OPENBLAST_WHITE)
     pdf.drawString(start_x, baseline_y, dot_text)
 
-    # OPENBLAST em Branco para contraste superior no fundo Navy
     start_x += pdf.stringWidth(dot_text, font_name, font_size) + gap
     pdf.setFillColor(OPENBLAST_WHITE)
     pdf.drawString(start_x, baseline_y, openblast_text)
@@ -509,7 +508,7 @@ def _draw_dna_badge(pdf: canvas.Canvas) -> None:
 
 
 def _draw_corner_motif(pdf: canvas.Canvas, x: float, y: float, radius: float, reverse: bool = False) -> None:
-    stroke = colors.HexColor("#2A2F46")
+    stroke = ENAEX_LINE_STRONG
     _draw_hexagon(pdf, x, y, radius, stroke, line_width=0.9)
     _draw_hexagon(pdf, x, y, radius * 1.18, stroke, line_width=0.7)
 
@@ -590,10 +589,10 @@ def _build_record_table(
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#EAF5D7")),
-                ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#EAF5D7")),
-                ("BACKGROUND", (4, 0), (4, -1), colors.HexColor("#EAF5D7")),
-                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#C9D1DA")),
+                ("BACKGROUND", (0, 0), (0, -1), ENAEX_SURFACE_QUIET),
+                ("BACKGROUND", (2, 0), (2, -1), ENAEX_SURFACE_QUIET),
+                ("BACKGROUND", (4, 0), (4, -1), ENAEX_SURFACE_QUIET),
+                ("GRID", (0, 0), (-1, -1), 0.35, ENAEX_LINE),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (0, 0), (-1, -1), "LEFT"),
                 ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
@@ -671,8 +670,8 @@ def _build_conclusion_table(records: list[SismogramRecord], width: float, height
     table.setStyle(
         TableStyle(
             [
-                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#EAF5D7")),
-                ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#C9D1DA")),
+                ("BACKGROUND", (0, 0), (0, -1), ENAEX_SURFACE_QUIET),
+                ("GRID", (0, 0), (-1, -1), 0.35, ENAEX_LINE),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (0, 0), (-1, -1), "LEFT"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 2.2),
@@ -709,10 +708,10 @@ def _draw_fit_text(
 
 def _build_pspl_chart(records: list[SismogramRecord]) -> io.BytesIO:
     chart_background = "#FFFFFF"
-    grid_color = "#D7D7D7"
-    axis_color = "#2E2E2E"
+    grid_color = "#E3E6EA"
+    axis_color = "#38424B"
     limit_color = OPENBLAST_DARK_HEX
-    marker_styles = [("o", OPENBLAST_DARK_HEX), ("s", "#2E86AB"), ("^", OPENBLAST_GREEN_HEX)]
+    marker_styles = [("o", "#38424B"), ("s", "#8B949E"), ("^", OPENBLAST_RED_HEX)]
 
     figure, axis = plt.subplots(figsize=(4.8, 3.0), dpi=320)
     figure.patch.set_facecolor(chart_background)
@@ -751,7 +750,7 @@ def _build_pspl_chart(records: list[SismogramRecord]) -> io.BytesIO:
     axis.set_title(
         "Pressão Sonora x Distância - ABNT NBR 9653:2018",
         fontsize=6.8,
-        color="#7A7A7A",
+        color="#6C7680",
         pad=8,
     )
 
@@ -759,7 +758,7 @@ def _build_pspl_chart(records: list[SismogramRecord]) -> io.BytesIO:
     limit_box = {
         "boxstyle": "square,pad=0.30",
         "facecolor": chart_background,
-        "edgecolor": "#111111",
+        "edgecolor": "#38424B",
         "linewidth": 0.6,
     }
     axis.annotate(
@@ -770,7 +769,7 @@ def _build_pspl_chart(records: list[SismogramRecord]) -> io.BytesIO:
         ha="center",
         va="center",
         fontsize=5.8,
-        color="#666666",
+        color="#6C7680",
         bbox=limit_box,
         zorder=5,
     )
@@ -782,7 +781,7 @@ def _build_pspl_chart(records: list[SismogramRecord]) -> io.BytesIO:
         ha="center",
         va="center",
         fontsize=5.8,
-        color="#666666",
+        color="#6C7680",
         bbox=limit_box,
         zorder=5,
     )
@@ -823,7 +822,7 @@ def _build_ppv_chart(records: list[SismogramRecord]) -> io.BytesIO:
     for guide_y in [15.0, 20.0, 50.0]:
         axis.axhline(guide_y, color=OPENBLAST_RED_HEX, linewidth=0.8, linestyle="--", alpha=0.25)
 
-    marker_styles = [("o", OPENBLAST_DARK_HEX), ("s", "#2E86AB"), ("^", OPENBLAST_GREEN_HEX)]
+    marker_styles = [("o", "#38424B"), ("s", "#8B949E"), ("^", OPENBLAST_RED_HEX)]
     plotted_points: list[tuple[float, float, str, str]] = []
     for index, record in enumerate(records):
         best_channel = record.max_channel()
