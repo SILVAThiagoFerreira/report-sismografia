@@ -168,6 +168,39 @@ a { color: inherit; }
 }
 .panel:hover { border-color: var(--line-strong); }
 
+.field-group {
+  margin-bottom: 18px;
+}
+.field-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text);
+  font-family: "Archivo", "IBM Plex Sans", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+.text-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+.text-input:focus {
+  border-color: var(--accent);
+  outline: 2px solid rgba(226, 6, 19, 0.14);
+  outline-offset: 1px;
+}
+.field-hint {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
 .dropzone {
   display: flex;
   flex-direction: column;

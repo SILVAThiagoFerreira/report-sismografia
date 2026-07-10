@@ -13,6 +13,11 @@ artefatos com nomes idênticos ao original:
 - `ENAEX_NSR-<YYYYMMDD>.pdf`
 - `ENAEX_NSR-<YYYYMMDD>.png`
 
+Antes da geração, o usuário informa a unidade de serviço no campo
+**Unidade de serviço**. O valor inicial é `US MINERAÇÃO VALE-VERDE` e o texto
+preenchido é aplicado ao cabeçalho e ao escopo do relatório somente naquela
+execução.
+
 ## Testar localmente
 
 ```bash

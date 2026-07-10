@@ -13,6 +13,7 @@
   const resultsGrid = document.getElementById("results-grid");
   const zipLink = document.getElementById("zip-link");
   const zipMeta = document.getElementById("zip-meta");
+  const clientInput = document.getElementById("client-input");
 
   /** @type {File[]} */
   let selected = [];
@@ -182,6 +183,14 @@
     if (selected.length === 0) return;
 
     const cfg = window.SISMO_CONFIG;
+    const clientName = String(clientInput?.value || "").trim();
+    if (!clientName) {
+      clientInput?.focus();
+      throw new Error("Informe a unidade de serviço antes de gerar o relatório.");
+    }
+    // O valor digitado substitui o padrão apenas nesta execução; a configuração
+    // permanece com US MINERAÇÃO VALE-VERDE para a próxima abertura do site.
+    cfg.project.client_override = clientName;
     setStatus(`Processando ${selected.length} sismograma(s)…`);
 
     // 1) Parse.
