@@ -15,17 +15,16 @@
   };
 
   const DPI = 220;
-  // Casamos o aspect ratio do canvas com o slot interno de cada chart card no PDF
-  // (chart_w=261.1, chart_h=146 → interno ~243×108 → aspect 2.25), assim o
-  // gráfico preenche o card sem margens brancas em cima/embaixo.
-  // Mantemos densidade em px equivalente a matplotlib 6.5×2.9in @ 220 DPI.
+  // Mantemos a proporção vertical do renderer Python (matplotlib 6.5×4.55in).
+  // A versão anterior reduzia a figura para 2.9in de altura e achatava a área
+  // dos eixos quando o PNG era encaixado no cartão A4.
   const FIG_W_IN = 6.5;
-  const FIG_H_IN = FIG_W_IN / 2.25; // ~2.888 in
+  const FIG_H_IN = 4.55;
   const CANVAS_W = Math.round(FIG_W_IN * DPI); // 1430
-  const CANVAS_H = Math.round(FIG_H_IN * DPI); // 635
+  const CANVAS_H = Math.round(FIG_H_IN * DPI); // 1001
 
-  // Layout dos "axes" dentro da figura (fração da figura). Compactamos as margens
-  // porque a área útil ficou menor.
+  // Layout dos "axes" dentro da figura (fração da figura), reservando espaço
+  // para título, rótulos e legenda externa como no renderer Python.
   const AX_MARGIN = {
     left: 0.09,
     right: 0.79, // deixa espaço para a legenda externa

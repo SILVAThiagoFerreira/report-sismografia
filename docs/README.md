@@ -98,9 +98,10 @@ Testado com os três CSVs de referência do projeto:
   inferior esquerdo, 1 pt = 1/72"). Diferença conhecida: o pdf-lib com fonte
   Helvetica não codifica `■` (U+25A0) — substituímos por `•` na única
   ocorrência (linha "Índices de vibração" do escopo).
-- **Gráficos**: canvas 1430×635, mesma paleta e mesmos marcadores (quadrado
+- **Gráficos**: canvas 1430×1001, mesma paleta e mesmos marcadores (quadrado
   vermelho / diamante azul / triângulo verde), curva NBR com quebra de eixo
-  Y quando aplicável.
+  Y quando aplicável. A proporção vertical 6.5×4.55in é a mesma do renderer
+  Python e evita o achatamento dos eixos nos cartões A4.
 
 Para editar limites, textos institucionais ou paleta, edite
 `js/config.js` — os módulos leem `window.SISMO_CONFIG` no momento do run.
