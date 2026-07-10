@@ -101,7 +101,8 @@ Testado com os três CSVs de referência do projeto:
 - **Gráficos**: canvas 1430×1001, mesma paleta e mesmos marcadores (quadrado
   vermelho / diamante azul / triângulo verde), curva NBR com quebra de eixo
   Y quando aplicável. A proporção vertical 6.5×4.55in é a mesma do renderer
-  Python e evita o achatamento dos eixos nos cartões A4.
+  Python e a área dos eixos usa margens compactas para evitar gráficos
+  pequenos dentro dos cartões A4.
 
 Para editar limites, textos institucionais ou paleta, edite
 `js/config.js` — os módulos leem `window.SISMO_CONFIG` no momento do run.

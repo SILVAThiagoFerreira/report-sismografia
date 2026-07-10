@@ -26,10 +26,10 @@
   // Layout dos "axes" dentro da figura (fração da figura), reservando espaço
   // para título, rótulos e legenda externa como no renderer Python.
   const AX_MARGIN = {
-    left: 0.09,
-    right: 0.79, // deixa espaço para a legenda externa
-    top: 0.86,
-    bottom: 0.18,
+    left: 0.07,
+    right: 0.86, // legenda externa permanece fora da área dos eixos
+    top: 0.89,
+    bottom: 0.13,
   };
 
   // ------- helpers gerais -------
