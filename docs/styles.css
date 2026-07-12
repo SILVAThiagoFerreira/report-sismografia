@@ -51,35 +51,38 @@ a { color: inherit; }
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 5;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 0 14px;
-  background: rgba(255, 255, 255, 0.94);
-  border-bottom: 1px solid var(--line-soft);
+  justify-content: center;
+  min-height: 54px;
+  padding: 8px 32px;
+  color: #fff;
+  background: #263540;
+  border-bottom: 3px solid #ed1c24;
 }
 
-.brand { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
-.brand__logo { width: 26px; height: auto; object-fit: contain; }
+.topbar.shell { width: 100vw; margin-right: 0; margin-left: calc(50% - 50vw); }
+
+.brand { position: absolute; left: 32px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.brand__logo { width: 30px; height: 36px; object-fit: contain; filter: brightness(0) invert(1); }
 .brand__wordmark {
-  color: var(--text);
+  color: #fff;
   font-family: "Archivo", "IBM Plex Sans", sans-serif;
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
+.brand__wordmark strong { color: #ff4b55; }
 
 .topbar__unit {
-  color: var(--text-soft);
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.66rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  color: #fff;
+  font-family: "Archivo", "IBM Plex Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: none;
 }
 
 .page { padding: 28px 0 8px; }
