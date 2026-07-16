@@ -215,7 +215,7 @@
       summary,
       config: cfg,
       chartCanvases: { pressure: pressureCanvas, vibration: vibrationCanvas },
-      logoUrl: cfg.branding?.logo_path || "assets/enaex_logo_horizontal.png",
+      logoUrl: cfg.branding?.logo_path || "assets/openblast.png",
     });
 
     // 5) PDF → PNG (300 DPI).

@@ -63,7 +63,11 @@ a { color: inherit; }
   border-bottom: 3px solid #ed1c24;
 }
 
-.topbar.shell { width: 100vw; margin-right: 0; margin-left: calc(50% - 50vw); }
+.topbar.shell {
+  width: 100vw;
+  margin-right: 0;
+  margin-left: calc(50% - 50vw);
+}
 
 .brand { position: absolute; left: 32px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
 .brand__logo { width: 30px; height: 36px; object-fit: contain; filter: brightness(0) invert(1); }

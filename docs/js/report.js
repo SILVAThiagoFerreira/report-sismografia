@@ -5,7 +5,9 @@
   const PAGE_W = 595.28;
   const PAGE_H = 841.89;
   const FIRST_PAGE_CARD_SLOTS = 3;
-  const FIRST_PAGE_LAST_CARD_Y = 70;
+  // A primeira página fica dedicada ao resumo e aos pontos; os gráficos
+  // ganham uma página própria para não serem reduzidos a miniaturas.
+  const FIRST_PAGE_LAST_CARD_Y = 220;
   const POINT_CARD_HEIGHT = 58;
   const POINT_CARD_GAP = 14;
   const POINTS_TITLE_GAP = 22;
@@ -204,6 +206,25 @@
     fitImage(page, chartImage, x + 9, y + 10, w - 18, h - 38);
   };
 
+  const drawChartPage = (page, config, chartImages, fonts, pdflib) => {
+    const chartCfg = config.charts || {};
+    const cardH = Number(chartCfg.report_chart_page_card_height ?? 300);
+    const gap = Number(chartCfg.report_chart_page_gap ?? 24);
+    const title = chartCfg.report_chart_page_title || "Gráficos Normativos — ABNT NBR 9653:2018";
+    const chartW = PAGE_W - 2 * MARGIN;
+    const topY = PAGE_H - 86 - cardH;
+    const bottomY = topY - gap - cardH;
+
+    drawText(page, title, MARGIN, PAGE_H - 55, 17, COLORS.text, false, fonts, pdflib);
+    page.drawRectangle({
+      x: MARGIN, y: PAGE_H - 62, width: 42, height: 2,
+      color: rgbColor(COLORS.green, pdflib),
+    });
+    drawChartCard(page, MARGIN, topY, chartW, cardH, "Pressão Sonora x Distância", chartImages.pressure, fonts, pdflib);
+    drawChartCard(page, MARGIN, bottomY, chartW, cardH, "PPV x Limite ABNT", chartImages.vibration, fonts, pdflib);
+    drawFooter(page, config, fonts, pdflib);
+  };
+
   const pointStatusText = (record) => {
     const ok = record.evaluation?.overall_conforme_abnt;
     if (ok === true) return ["CONFORME ABNT", COLORS.green];
@@ -290,7 +311,7 @@
       x: badgeX, y: badgeY, width: badgeW, height: badgeH,
       color: rgbColor(COLORS.navy, pdflib),
     });
-    drawText(page, config.project?.footer_badge || "DNA  •  ENAEX", badgeX + 23, badgeY + 8, 8, "#FFFFFF", true, fonts, pdflib);
+    drawText(page, config.project?.footer_badge || "DNA  •  OpenBlast", badgeX + 23, badgeY + 8, 8, "#FFFFFF", true, fonts, pdflib);
     // Faixa vermelha na base.
     page.drawRectangle({
       x: 0, y: 0, width: PAGE_W, height: 6,
@@ -301,13 +322,10 @@
   const firstPageLayout = () => {
     const firstCardY = FIRST_PAGE_LAST_CARD_Y + (FIRST_PAGE_CARD_SLOTS - 1) * (POINT_CARD_HEIGHT + POINT_CARD_GAP);
     const pointsTitleY = firstCardY + POINT_CARD_HEIGHT + POINTS_TITLE_GAP;
-    const chartY = pointsTitleY + CHART_TO_POINTS_GAP;
-    const chartH = CHARTS_TOP_LIMIT - chartY;
     return {
       pointsTitleY, firstCardY,
       cardHeight: POINT_CARD_HEIGHT,
       cardGap: POINT_CARD_GAP,
-      chartY, chartH,
     };
   };
 
@@ -351,10 +369,6 @@
     drawScope(page, MARGIN, 566, PAGE_W - 2 * MARGIN, 72, config, records, summary, fonts, pdflib);
     drawConclusion(page, MARGIN, 488, PAGE_W - 2 * MARGIN, 72, records, summary, fonts, pdflib);
 
-    const chartW = (PAGE_W - 2 * MARGIN - 17) / 2;
-    drawChartCard(page, MARGIN, layout.chartY, chartW, layout.chartH, "Pressão Sonora x Distância", pressureImg, fonts, pdflib);
-    drawChartCard(page, MARGIN + chartW + 17, layout.chartY, chartW, layout.chartH, "PPV x Limite ABNT", vibrationImg, fonts, pdflib);
-
     drawText(page, "Pontos Monitorados", MARGIN, layout.pointsTitleY, 17, COLORS.text, false, fonts, pdflib);
     page.drawRectangle({
       x: MARGIN, y: layout.pointsTitleY - 7, width: 42, height: 2,
@@ -370,6 +384,9 @@
       drawText(page, `+ ${records.length - FIRST_PAGE_CARD_SLOTS} ponto(s) adicionais no JSON consolidado.`, MARGIN + 10, y + 10, 8, COLORS.muted, false, fonts, pdflib);
     }
     drawFooter(page, config, fonts, pdflib);
+
+    const chartPage = doc.addPage([PAGE_W, PAGE_H]);
+    drawChartPage(chartPage, config, { pressure: pressureImg, vibration: vibrationImg }, fonts, pdflib);
 
     // Páginas extras.
     if (records.length > FIRST_PAGE_CARD_SLOTS) {
