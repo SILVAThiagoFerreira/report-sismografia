@@ -35,3 +35,7 @@ Depois acesse `http://localhost:8000`.
 ## Observação
 
 O fluxo antigo baseado em PDF foi preservado apenas como referência histórica. O caminho ativo do projeto é o navegador com CSV.
+
+As cores do relatório são mantidas em `docs/js/config.js`; a série longitudinal
+usa Cinza Enaex e a série vertical mantém o verde, sem azul estrutural no
+template.

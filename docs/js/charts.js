@@ -2,11 +2,12 @@
 // (FIGSIZE 6.5×4.55 in × 220 DPI) para que os PNGs entrem no PDF com o
 // mesmo aspect ratio esperado por _draw_chart_card.
 (() => {
+  const palette = window.SISMO_CONFIG?.branding?.palette || {};
   const COLORS = {
-    dark: "#2F3440",
-    red: "#E30613",
-    green: "#67C70A",
-    blue: "#2D7DBF",
+    dark: palette.enaex_gray || "#38424B",
+    red: palette.series_transversal || palette.enaex_red || "#E20613",
+    green: palette.series_vertical || "#16A34A",
+    longitudinal: palette.series_longitudinal || palette.enaex_gray || "#38424B",
     gray: "#6B7280",
     grid: "#B7BDC7",
     gridMinor: "#D7DCE5",
@@ -573,8 +574,8 @@
 
     const axesDefs = [
       { label: "Transversal", ppvKey: "tran_ppv_mm_s", freqKey: "tran_freq_hz", marker: "s", color: COLORS.red },
-      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: "#1D4ED8" },
-      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: "#16A34A" },
+      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: COLORS.longitudinal },
+      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: COLORS.green },
     ];
 
     const freqs = [];

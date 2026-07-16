@@ -20,3 +20,6 @@
 - [x] A geração é rastreável por timestamp.
 - [x] Os artefatos são identificáveis por nome.
 - [x] O status de vibração aparece no relatório e na nota rápida.
+- [x] A paleta do report está centralizada em `docs/js/config.js`.
+- [x] A série longitudinal usa Cinza Enaex, sem azul hardcoded no template.
+- [x] A série vertical e os estados de conformidade mantêm o verde configurado.

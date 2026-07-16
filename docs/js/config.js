@@ -5,7 +5,7 @@ window.SISMO_CONFIG = {
     title: "MONITORAMENTO SISMOGRÁFICO",
     client_default: "US MINERAÇÃO VALE-VERDE",
     base_normativa: "ABNT NBR 9653:2018",
-    footer_badge: "DNA  •  OpenBlast",
+    footer_badge: "DNA  •  ENAEX",
     client_override: "US MINERAÇÃO VALE-VERDE",
   },
   output: {
@@ -48,5 +48,22 @@ window.SISMO_CONFIG = {
   branding: {
     // Logo OpenBlast embutido no header do PDF — resolvido em runtime como fetch.
     logo_path: "assets/openblast.png",
+    // Paleta estrutural do relatório. Verde fica reservado aos estados e à série vertical.
+    palette: {
+      enaex_gray: "#38424B",
+      enaex_red: "#E20613",
+      white: "#FFFFFF",
+      gray_50: "#F7F8FA",
+      gray_100: "#E8EAEE",
+      gray_200: "#D9DEE7",
+      gray_300: "#E1E5EA",
+      text: "#111827",
+      muted: "#667085",
+      series_transversal: "#E20613",
+      series_longitudinal: "#38424B",
+      series_vertical: "#16A34A",
+      status_conforme: "#67C70A",
+      status_ausente: "#9AA1AC",
+    },
   },
 };

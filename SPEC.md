@@ -44,3 +44,5 @@ Receber arquivos CSV de sismografia, validar os registros e gerar um relatório 
 - O produto ativo é uma aplicação estática para GitHub Pages.
 - O fluxo legado em PDF não é mais o caminho principal.
 - O processamento local no navegador evita dependência de IA e de backend.
+- A identidade visual é resolvida em `branding.palette` dentro de `docs/js/config.js`.
+- A série longitudinal usa Cinza Enaex `#38424B`, a série transversal usa Vermelho Enaex `#E20613`, a série vertical mantém o verde `#16A34A` e o verde `#67C70A` é reservado aos estados de conformidade; azul não faz parte do template.

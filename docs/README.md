@@ -18,6 +18,15 @@ Antes da geração, o usuário informa a unidade de serviço no campo
 preenchido é aplicado ao cabeçalho e ao escopo do relatório somente naquela
 execução.
 
+## Paleta Enaex
+
+A paleta do relatório é configurada em `js/config.js`, no objeto
+`branding.palette`: Cinza Enaex `#38424B` para cabeçalhos, elementos estruturais
+e a série longitudinal; Vermelho Enaex `#E20613` para títulos, destaques e a
+série transversal; variações de branco/cinza para fundos e rótulos. A série
+vertical mantém o verde `#16A34A` e o verde `#67C70A` fica reservado aos estados
+de conformidade. O template não usa azul.
+
 ## Testar localmente
 
 ```bash
@@ -106,7 +115,7 @@ Testado com os três CSVs de referência do projeto:
   Helvetica não codifica `■` (U+25A0) — substituímos por `•` na única
   ocorrência (linha "Índices de vibração" do escopo).
 - **Gráficos**: canvas 1430×1001, mesma paleta e mesmos marcadores (quadrado
-  vermelho / diamante azul / triângulo verde), curva NBR com quebra de eixo
+  vermelho / diamante cinza Enaex / triângulo verde), curva NBR com quebra de eixo
   Y quando aplicável. A proporção vertical 6.5×4.55in é a mesma do renderer
   Python e a área dos eixos usa margens compactas para evitar gráficos
   pequenos dentro dos cartões A4.

@@ -1,6 +1,7 @@
 // Port de src/report.py — onepage A4 em pdf-lib com paridade coordenada-a-coordenada.
 // Origem A4 em pdf-lib e reportlab: canto inferior esquerdo, y cresce para cima. 1 pt = 1/72".
 (() => {
+  const palette = window.SISMO_CONFIG?.branding?.palette || {};
   // --- Constantes idênticas a src/report.py ---
   const PAGE_W = 595.28;
   const PAGE_H = 841.89;
@@ -16,18 +17,18 @@
   const MARGIN = 28;
 
   const COLORS = {
-    red: "#E30613",
-    green: "#67C70A",
-    dark: "#3C4656",
-    navy: "#151B36",
-    text: "#111827",
-    muted: "#667085",
-    line: "#D9DEE7",
-    light_green: "#EAF6D9",
-    shadow: "#E1E5EA",
-    header_band: "#E8EAEE",
+    red: palette.enaex_red || "#E20613",
+    green: palette.status_conforme || "#67C70A",
+    dark: palette.enaex_gray || "#38424B",
+    navy: palette.enaex_gray || "#38424B",
+    text: palette.text || "#111827",
+    muted: palette.muted || "#667085",
+    line: palette.gray_200 || "#D9DEE7",
+    light_green: palette.gray_50 || "#F7F8FA",
+    shadow: palette.gray_300 || "#E1E5EA",
+    header_band: palette.gray_100 || "#E8EAEE",
     header_client: "#697386",
-    status_gray: "#9AA1AC",
+    status_gray: palette.status_ausente || "#9AA1AC",
   };
 
   const hexToRgb = (hex) => {
@@ -152,7 +153,7 @@
 
   const drawScope = (page, x, y, w, h, config, records, summary, fonts, pdflib) => {
     drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    drawSectionHeader(page, x, y + h - 20, w, 20, "Escopo da Campanha", COLORS.green, fonts, pdflib);
+    drawSectionHeader(page, x, y + h - 20, w, 20, "Escopo da Campanha", COLORS.dark, fonts, pdflib);
     const y0 = y + h - 32;
     const eventDate = fmtDateIso(summary.event_date);
     const client = summary.client || config.project?.client_default || "N/D";
@@ -168,7 +169,7 @@
 
   const drawConclusion = (page, x, y, w, h, records, summary, fonts, pdflib) => {
     drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    drawSectionHeader(page, x, y + h - 20, w, 20, "Conclusão Técnica", COLORS.green, fonts, pdflib);
+    drawSectionHeader(page, x, y + h - 20, w, 20, "Conclusão Técnica", COLORS.dark, fonts, pdflib);
     const rows = [
       ["Conformidade", summary.all_conforme_abnt ? "Todos os pontos abaixo dos limites da ABNT NBR 9653:2018." : "Há ponto(s) acima de limite ou com dado ausente para avaliação."],
       ["Maior PSPL", `${fmtNum(summary.max_pspl?.value_db, 1)} dB(L) | ${summary.max_pspl?.point_name || "N/D"}`],
@@ -202,7 +203,7 @@
 
   const drawChartCard = (page, x, y, w, h, title, chartImage, fonts, pdflib) => {
     drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    drawSectionHeader(page, x, y + h - 20, w, 20, title, COLORS.green, fonts, pdflib);
+    drawSectionHeader(page, x, y + h - 20, w, 20, title, COLORS.dark, fonts, pdflib);
     fitImage(page, chartImage, x + 9, y + 10, w - 18, h - 38);
   };
 
@@ -218,7 +219,7 @@
     drawText(page, title, MARGIN, PAGE_H - 55, 17, COLORS.text, false, fonts, pdflib);
     page.drawRectangle({
       x: MARGIN, y: PAGE_H - 62, width: 42, height: 2,
-      color: rgbColor(COLORS.green, pdflib),
+      color: rgbColor(COLORS.red, pdflib),
     });
     drawChartCard(page, MARGIN, topY, chartW, cardH, "Pressão Sonora x Distância", chartImages.pressure, fonts, pdflib);
     drawChartCard(page, MARGIN, bottomY, chartW, cardH, "PPV x Limite ABNT", chartImages.vibration, fonts, pdflib);
@@ -239,10 +240,10 @@
       x, y: y + h - 17, width: w, height: 17,
       color: rgbColor(COLORS.dark, pdflib),
     });
-    // Régua verde à esquerda.
+    // Régua vermelha identifica o cartão; verde fica reservado à conformidade.
     page.drawRectangle({
       x, y: y + h - 17, width: 3.5, height: 17,
-      color: rgbColor(COLORS.green, pdflib),
+      color: rgbColor(COLORS.red, pdflib),
     });
     drawText(page, String(record.point_name || "PONTO MONITORADO").toUpperCase(), x + 14, y + h - 12, 9, "#FFFFFF", true, fonts, pdflib);
 
@@ -364,7 +365,7 @@
     drawText(page, "Resumo Executivo", MARGIN, 652, 17, COLORS.text, false, fonts, pdflib);
     page.drawRectangle({
       x: MARGIN, y: 645, width: 42, height: 2,
-      color: rgbColor(COLORS.green, pdflib),
+      color: rgbColor(COLORS.red, pdflib),
     });
     drawScope(page, MARGIN, 566, PAGE_W - 2 * MARGIN, 72, config, records, summary, fonts, pdflib);
     drawConclusion(page, MARGIN, 488, PAGE_W - 2 * MARGIN, 72, records, summary, fonts, pdflib);
@@ -372,7 +373,7 @@
     drawText(page, "Pontos Monitorados", MARGIN, layout.pointsTitleY, 17, COLORS.text, false, fonts, pdflib);
     page.drawRectangle({
       x: MARGIN, y: layout.pointsTitleY - 7, width: 42, height: 2,
-      color: rgbColor(COLORS.green, pdflib),
+      color: rgbColor(COLORS.red, pdflib),
     });
     let y = layout.firstCardY;
     const cardH = layout.cardHeight;

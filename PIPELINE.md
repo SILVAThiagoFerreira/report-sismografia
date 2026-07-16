@@ -10,6 +10,13 @@
 6. Renderizar o report na tela.
 7. Exportar PDF, PNG, JSON e nota rápida, se solicitado.
 
+## Regra visual
+
+As cores das séries e dos componentes do relatório são resolvidas pela paleta
+configurada em `docs/js/config.js`. O marcador longitudinal deve usar Cinza
+Enaex, o marcador vertical deve permanecer verde e os estados de conformidade
+devem continuar usando o verde de status.
+
 ## Modo de Uso
 
 1. Abrir a página do GitHub Pages.
