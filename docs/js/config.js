@@ -1,5 +1,4 @@
-// Config embarcada (equivalente a config.json do pipeline Python).
-// Editar aqui para mudar limites, prefixos ou textos exibidos.
+// Configuração da emissão web. Deve permanecer sincronizada com config.json.
 window.SISMO_CONFIG = {
   project: {
     title: "MONITORAMENTO SISMOGRÁFICO",
@@ -31,6 +30,15 @@ window.SISMO_CONFIG = {
     ],
   },
   charts: {
+    figure_width: 9.0,
+    figure_height: 4.4,
+    figure_dpi: 220,
+    title_font_size: 11.0,
+    axis_label_font_size: 9.0,
+    tick_font_size: 8.0,
+    legend_font_size: 8.0,
+    annotation_font_size: 8.0,
+    marker_size: 48.0,
     vibration_x_min: 0.0,
     vibration_y_min: 0.0,
     vibration_y_tick_step: 0.1,
@@ -41,14 +49,39 @@ window.SISMO_CONFIG = {
     pressure_x_min: 0.0,
     pressure_y_min: 0.0,
     pressure_y_max: 160.0,
-    report_chart_page_title: "Gráficos Normativos — ABNT NBR 9653:2018",
-    report_chart_page_card_height: 300,
-    report_chart_page_gap: 24,
+  },
+  report_layout: {
+    page_margin: 28.0,
+    chart_column_gap: 14.0,
+    chart_inner_padding: 6.0,
+    chart_header_height: 22.0,
+    chart_to_points_gap: 28.0,
+    charts_top_limit: 484.0,
+    footer_height: 30.0,
+    footer_accent_height: 2.0,
+    footer_side_padding: 28.0,
+    status_badge_width: 112.0,
+    status_badge_height: 20.0,
+    status_badge_radius: 6.0,
+  },
+  report_text: {
+    executive_title: "Resumo Executivo",
+    scope_title: "Escopo da Campanha",
+    conclusion_title: "Conclusão Técnica",
+    points_title: "Pontos Monitorados",
+    continued_points_title: "Pontos Monitorados - Continuação",
+    pressure_chart_title: "Pressão Sonora x Distância",
+    vibration_chart_title: "PPV x Limite ABNT",
+  },
+  processing: {
+    require_single_event_date: true,
+    record_order: "gps_distance_ascending",
+  },
+  report: {
+    show_vibration_index: true,
   },
   branding: {
-    // Logo OpenBlast embutido no header do PDF — resolvido em runtime como fetch.
-    logo_path: "assets/openblast.png",
-    // Paleta estrutural do relatório. Verde fica reservado aos estados e à série vertical.
+    logo_path: "assets/enaex_logo_horizontal.png",
     palette: {
       enaex_gray: "#38424B",
       enaex_red: "#E20613",

@@ -7,7 +7,8 @@ Aplicação web estática para importar CSVs de sismografia, validar os dados e 
 1. O usuário acessa a página publicada no GitHub Pages.
 2. Faz upload de um ou mais arquivos CSV.
 3. A aplicação consolida os registros, valida os campos essenciais e monta a pré-visualização.
-4. O usuário baixa o relatório em PDF, PNG, JSON e a nota rápida para WhatsApp.
+4. O usuário baixa o relatório em PDF, PNG, JSON e a nota rápida para WhatsApp,
+   além de um ZIP com os três arquivos compartilháveis.
 
 ## Estrutura de CSV
 
@@ -23,14 +24,25 @@ python -m http.server 8000 -d docs
 
 Depois acesse `http://localhost:8000`.
 
+Para até três pontos, PDF e PNG são uma única página A4 com resumo, gráficos e
+cartões. Qualificadores instrumentais `<` e `>` são preservados nos valores
+exibidos e datas de evento misturadas são rejeitadas.
+
 ## Arquivos principais
 
 - [`docs/index.html`](./docs/index.html): página da aplicação.
 - [`docs/styles.css`](./docs/styles.css): identidade visual do report.
-- [`docs/app.js`](./docs/app.js): leitura dos CSVs, validação e geração dos artefatos.
+- [`docs/js/app.js`](./docs/js/app.js): leitura dos CSVs, validação e geração dos artefatos.
 - [`docs/manifest.json`](./docs/manifest.json): metadados da aplicação web.
 - [`docs/.nojekyll`](./docs/.nojekyll): evita processamento do GitHub Pages.
 - [`main.py`](./main.py): mantido para compatibilidade legada do projeto original.
+
+## Publicação atual
+
+O GitHub Pages deste repositório está configurado em `main:/docs` e é servido
+em <https://silvathiagoferreira.github.io/report-sismografia/>. A pasta `web/`
+é a cópia de trabalho para manutenção; `docs/` é o diretório efetivamente
+publicado. Não versionar CSVs operacionais, logs ou saídas geradas.
 
 ## Observação
 

@@ -6,12 +6,18 @@ para servidor: os CSVs são lidos localmente, os gráficos são renderizados em
 `<canvas>`, o PDF é montado com [pdf-lib], convertido em PNG via [pdf.js] e
 empacotado em ZIP com [JSZip].
 
-Aceita os mesmos CSVs `.IDFW.CSV` do pipeline Python e devolve os três
-artefatos com nomes idênticos ao original:
+Aceita um ou mais CSVs `.IDFW.CSV` do pipeline Python e devolve os três
+artefatos com nomes idênticos ao original, além de um ZIP:
 
 - `ENAEX_NSR-<YYYYMMDD>_nota_whatsapp.txt`
 - `ENAEX_NSR-<YYYYMMDD>.pdf`
 - `ENAEX_NSR-<YYYYMMDD>.png`
+- `ENAEX_NSR-<YYYYMMDD>_report.zip`
+
+Para até três pontos, o PDF e o PNG são uma única página A4 com resumo,
+gráficos normativos e cartões dos pontos. A validação rejeita campos
+essenciais ausentes, números inválidos e datas de evento misturadas; os
+qualificadores instrumentais `<` e `>` são preservados.
 
 ## Testar localmente
 
@@ -24,41 +30,13 @@ python -m http.server 5058
 Não precisa de Node, Flask, nada — só um servidor de arquivos estático (o
 navegador exige `http://` para carregar módulos e CDNs).
 
-## Publicar no GitHub Pages
+## Publicação atual no GitHub Pages
 
-### Opção A — repositório dedicado (mais simples)
-
-1. Cria um repositório novo no GitHub, ex.: `report-sismografia`.
-2. Copia o conteúdo desta pasta `pages/` para a raiz do repo — o arquivo
-   `index.html` precisa ficar na raiz.
-3. Push para `main`.
-4. Em **Settings → Pages**, selecione:
-   - Source: **Deploy from a branch**
-   - Branch: `main` / pasta `/ (root)`
-5. Aguarde 1-2 minutos. URL final:
-   `https://<seu-usuario>.github.io/report-sismografia/`
-
-Comandos:
-
-```bash
-cd caminho/para/pages
-git init
-git add .
-git commit -m "Report Sismográfico: publicação inicial"
-git branch -M main
-git remote add origin https://github.com/<usuário>/report-sismografia.git
-git push -u origin main
-```
-
-### Opção B — subpasta em um repositório existente
-
-Se você já tem um repositório com GitHub Pages ativo (por exemplo o hub
-OpenBlast US MVV), coloque o conteúdo em uma subpasta e o site ficará em
-`https://<seu-usuario>.github.io/<repo>/<subpasta>/`.
-
-Nesse caso, edite o `index.html` desta pasta e ajuste os caminhos relativos
-se você renomear a subpasta — hoje tudo é relativo (`assets/`, `js/`,
-`styles.css`), então basta não mexer na estrutura interna.
+O repositório `SILVAThiagoFerreira/report-sismografia` publica a branch `main`
+na pasta `/docs` em
+<https://silvathiagoferreira.github.io/report-sismografia/>. Mantenha `web/`
+como fonte de trabalho e sincronize os arquivos da aplicação com `docs/` antes
+do push. O site é estático: os CSVs permanecem no dispositivo do usuário.
 
 ## Estrutura
 
@@ -76,6 +54,7 @@ pages/
     ├── whatsapp.js    — port de src/whatsapp.py
     ├── charts.js      — port de src/charts.py em Canvas 2D
     ├── report.js      — port de src/report.py em pdf-lib
+    ├── validation.js  — validação e ordenação dos registros
     └── app.js         — orquestrador da UI: drop → pipeline → download
 ```
 

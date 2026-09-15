@@ -161,15 +161,22 @@
       max_pspl: {
         value_db: maxPsplRecord?.pspl_db ?? null,
         point_name: maxPsplRecord?.point_name ?? null,
+        qualifier: maxPsplRecord?.numeric_qualifiers?.pspl_db ?? null,
       },
       max_ppv: {
         value_mm_s: maxPpvRecord?.evaluation?.ppv_max_mm_s ?? null,
         axis: maxPpvRecord?.evaluation?.ppv_max_axis ?? null,
         point_name: maxPpvRecord?.point_name ?? null,
+        qualifier: maxPpvRecord?.numeric_qualifiers?.[{
+          Tran: "tran_ppv_mm_s",
+          Vert: "vert_ppv_mm_s",
+          Long: "long_ppv_mm_s",
+        }[maxPpvRecord?.evaluation?.ppv_max_axis]] ?? null,
       },
       max_pvs: {
         value_mm_s: maxPvsRecord?.pvs_mm_s ?? null,
         point_name: maxPvsRecord?.point_name ?? null,
+        qualifier: maxPvsRecord?.numeric_qualifiers?.pvs_mm_s ?? null,
       },
     };
   };

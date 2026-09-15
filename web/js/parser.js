@@ -18,6 +18,12 @@
     return Number.isFinite(n) ? n : null;
   };
 
+  const extractQualifier = (value) => {
+    if (value === null || value === undefined) return null;
+    const match = String(value).replace(/ /g, " ").match(/^\s*([<>])\s*[-+]?\d+(?:[.,]\d+)?/);
+    return match ? match[1] : null;
+  };
+
   const parseScaledDistance = (value) => {
     const result = { scaled_distance: null, distance_m: null, charge_kg: null };
     if (!value) return result;
@@ -122,6 +128,30 @@
     const gpsDistance =
       parseFloatSafe(meta["GpsDistance"]) ?? scaled.distance_m;
 
+    const numericSourceFields = {
+      gps_distance_m: "GpsDistance",
+      scaled_distance: "ScaledDistance",
+      charge_kg: "ScaledDistance",
+      pspl_db: "MicPSPL",
+      mic_freq_hz: "MicZCFreq",
+      pvs_mm_s: "PeakVectorSum",
+      tran_ppv_mm_s: "TranPPV",
+      vert_ppv_mm_s: "VertPPV",
+      long_ppv_mm_s: "LongPPV",
+      tran_freq_hz: "TranZCFreq",
+      vert_freq_hz: "VertZCFreq",
+      long_freq_hz: "LongZCFreq",
+      tran_time_peak_s: "TranTimeofPeak",
+      vert_time_peak_s: "VertTimeofPeak",
+      long_time_peak_s: "LongTimeofPeak",
+      mic_time_peak_s: "MicTimeofPeak",
+    };
+    const numericQualifiers = {};
+    for (const [field, sourceKey] of Object.entries(numericSourceFields)) {
+      const qualifier = extractQualifier(meta[sourceKey]);
+      if (qualifier) numericQualifiers[field] = qualifier;
+    }
+
     return {
       source_file: fileName,
       event_date: meta["EventDate"] || null,
@@ -152,8 +182,9 @@
       vert_test_result: meta["VertTestResults"] || null,
       long_test_result: meta["LongTestResults"] || null,
       metadata: meta,
+      numeric_qualifiers: numericQualifiers,
     };
   };
 
-  window.SismoParser = { parseSismoCsv, parseFloatSafe, normKey };
+  window.SismoParser = { parseSismoCsv, parseFloatSafe, extractQualifier, normKey };
 })();

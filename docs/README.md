@@ -6,12 +6,13 @@ para servidor: os CSVs são lidos localmente, os gráficos são renderizados em
 `<canvas>`, o PDF é montado com [pdf-lib], convertido em PNG via [pdf.js] e
 empacotado em ZIP com [JSZip].
 
-Aceita os mesmos CSVs `.IDFW.CSV` do pipeline Python e devolve os três
-artefatos com nomes idênticos ao original:
+Aceita um ou mais CSVs `.IDFW.CSV` do pipeline Python e devolve os três
+artefatos com nomes idênticos ao original, além de um ZIP:
 
 - `ENAEX_NSR-<YYYYMMDD>_nota_whatsapp.txt`
 - `ENAEX_NSR-<YYYYMMDD>.pdf`
 - `ENAEX_NSR-<YYYYMMDD>.png`
+- `ENAEX_NSR-<YYYYMMDD>_report.zip`
 
 Antes da geração, o usuário informa a unidade de serviço no campo
 **Unidade de serviço**. O valor inicial é `US MINERAÇÃO VALE-VERDE` e o texto
@@ -38,41 +39,16 @@ python -m http.server 5058
 Não precisa de Node, Flask, nada — só um servidor de arquivos estático (o
 navegador exige `http://` para carregar módulos e CDNs).
 
-## Publicar no GitHub Pages
+## Publicação atual no GitHub Pages
 
-### Opção A — repositório dedicado (mais simples)
+Este é o diretório efetivamente servido: branch `main`, pasta `/docs`, no
+repositório `SILVAThiagoFerreira/report-sismografia`.
 
-1. Cria um repositório novo no GitHub, ex.: `report-sismografia`.
-2. Copia o conteúdo desta pasta `pages/` para a raiz do repo — o arquivo
-   `index.html` precisa ficar na raiz.
-3. Push para `main`.
-4. Em **Settings → Pages**, selecione:
-   - Source: **Deploy from a branch**
-   - Branch: `main` / pasta `/ (root)`
-5. Aguarde 1-2 minutos. URL final:
-   `https://<seu-usuario>.github.io/report-sismografia/`
+URL: <https://silvathiagoferreira.github.io/report-sismografia/>.
 
-Comandos:
-
-```bash
-cd caminho/para/pages
-git init
-git add .
-git commit -m "Report Sismográfico: publicação inicial"
-git branch -M main
-git remote add origin https://github.com/<usuário>/report-sismografia.git
-git push -u origin main
-```
-
-### Opção B — subpasta em um repositório existente
-
-Se você já tem um repositório com GitHub Pages ativo (por exemplo o hub
-OpenBlast US MVV), coloque o conteúdo em uma subpasta e o site ficará em
-`https://<seu-usuario>.github.io/<repo>/<subpasta>/`.
-
-Nesse caso, edite o `index.html` desta pasta e ajuste os caminhos relativos
-se você renomear a subpasta — hoje tudo é relativo (`assets/`, `js/`,
-`styles.css`), então basta não mexer na estrutura interna.
+Os CSVs são lidos e processados somente no navegador. Para até três pontos, o
+PDF e o PNG são uma única página A4; datas de evento misturadas e registros
+incompletos são rejeitados antes da geração.
 
 ## Estrutura
 
@@ -90,6 +66,7 @@ pages/
     ├── whatsapp.js    — port de src/whatsapp.py
     ├── charts.js      — port de src/charts.py em Canvas 2D
     ├── report.js      — port de src/report.py em pdf-lib
+    ├── validation.js  — validação e ordenação dos registros
     └── app.js         — orquestrador da UI: drop → pipeline → download
 ```
 
@@ -108,17 +85,12 @@ Testado com os três CSVs de referência do projeto:
 - **Nota WhatsApp**: byte-a-byte idêntica (excluindo `\r\n` vs `\n` de
   quebras de linha do Windows).
 - **Compliance NBR 9653**: interpolação da curva com o mesmo algoritmo.
-- **Layout do PDF**: coordenadas idênticas ao `report.py` (origem A4 canto
-  inferior esquerdo, 1 pt = 1/72"). A primeira página concentra resumo e
-  pontos monitorados; a segunda apresenta os gráficos normativos em largura
-  total para preservar a legibilidade. Diferença conhecida: o pdf-lib com fonte
-  Helvetica não codifica `■` (U+25A0) — substituímos por `•` na única
-  ocorrência (linha "Índices de vibração" do escopo).
-- **Gráficos**: canvas 1430×1001, mesma paleta e mesmos marcadores (quadrado
-  vermelho / diamante cinza Enaex / triângulo verde), curva NBR com quebra de eixo
-  Y quando aplicável. A proporção vertical 6.5×4.55in é a mesma do renderer
-  Python e a área dos eixos usa margens compactas para evitar gráficos
-  pequenos dentro dos cartões A4.
+- **Layout do PDF**: a primeira página concentra resumo, gráficos e pontos
+  monitorados para campanhas de até três pontos (origem A4 no canto inferior
+  esquerdo, 1 pt = 1/72").
+- **Gráficos**: canvas 1430×635, mesma paleta e curva NBR com quebra de eixo Y
+  quando aplicável. A área dos eixos usa margens compactas para preservar a
+  leitura dentro dos cartões A4.
 
 Para editar limites, textos institucionais ou paleta, edite
 `js/config.js` — os módulos leem `window.SISMO_CONFIG` no momento do run.

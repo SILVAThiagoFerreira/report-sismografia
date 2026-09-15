@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Gerador de relatório sismográfico ENAEX — 100% no navegador, sem backend." />
+    <meta name="description" content="Gere relatórios sismográficos ENAEX no seu navegador." />
     <meta name="theme-color" content="#ffffff" />
     <meta name="application-name" content="Report Sismográfico | OpenBlast" />
     <link rel="icon" href="assets/openblast.png" />
@@ -16,14 +16,14 @@
     />
     <link rel="stylesheet" href="styles.css" />
 
-    <!-- Vendored via CDN (fixados em uma versão); GitHub Pages não precisa de nada mais. -->
+    <!-- Dependências fixadas; os dados escolhidos permanecem no navegador. -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs" type="module"></script>
 
-    <!-- Config e módulos do projeto. -->
     <script src="js/config.js" defer></script>
     <script src="js/parser.js" defer></script>
+    <script src="js/validation.js" defer></script>
     <script src="js/compliance.js" defer></script>
     <script src="js/whatsapp.js" defer></script>
     <script src="js/charts.js" defer></script>
@@ -34,41 +34,42 @@
     <header class="topbar shell">
       <a class="brand" href="./" aria-label="OpenBlast">
         <img class="brand__logo" src="assets/openblast.png" alt="OpenBlast" onerror="this.style.display='none'" />
-        <span class="brand__wordmark">OpenBlast</span>
+        <span class="brand__wordmark">Open<strong>Blast</strong></span>
       </a>
-      <span class="topbar__unit">Report Sismográfico</span>
+      <span class="topbar__unit">Report Sismográfico · USMVV</span>
     </header>
 
     <main class="shell page">
       <section class="hero" aria-labelledby="hero-title">
-        <article class="hero__copy reveal">
+        <div class="hero__copy">
           <p class="eyebrow eyebrow--accent">Monitoramento sismográfico</p>
-          <div class="hero__title-row">
-            <h1 id="hero-title">Report Sismográfico</h1>
-          </div>
-          <p class="hero__subtitle">
-            Anexe os CSVs dos sismógrafos <span class="mono">.IDFW.CSV</span> e gere a nota
-            para WhatsApp, o relatório em PDF e a versão em imagem — individualmente ou empacotados em ZIP.
-            Todo o processamento acontece no seu navegador; nenhum arquivo sai do seu computador.
-          </p>
-        </article>
-      </section>
-
-      <section class="section-head reveal" aria-labelledby="upload-title">
-        <div>
-          <p class="eyebrow eyebrow--accent">01 · Entrada</p>
-          <h2 id="upload-title">Anexar sismogramas</h2>
+          <h1 id="hero-title">Report Sismográfico</h1>
+          <p class="hero__subtitle">Selecione os CSVs da campanha e baixe PDF, PNG e nota para WhatsApp.</p>
+          <div class="hero__note"><span class="hero__note-dot" aria-hidden="true"></span>Processamento local no navegador</div>
         </div>
-        <p class="section-head__text">
-          Aceita múltiplos CSVs por vez. Cada arquivo vira um ponto de monitoramento no relatório.
-        </p>
       </section>
 
-      <section class="panel reveal" aria-labelledby="upload-title">
+      <section class="section-head" aria-labelledby="upload-title">
+        <div>
+          <p class="eyebrow eyebrow--accent">Entrada</p>
+          <h2 id="upload-title">Gerar relatório</h2>
+        </div>
+        <p class="section-head__text">Um arquivo por ponto. Você pode selecionar a campanha inteira de uma vez.</p>
+      </section>
+
+      <section class="panel" aria-labelledby="upload-title">
+        <div class="panel__intro">
+          <div>
+            <span class="panel__kicker">Arquivos .IDFW.CSV</span>
+            <h3>Selecione os sismogramas</h3>
+          </div>
+          <span class="panel__hint">Sem envio para servidor</span>
+        </div>
+
         <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Selecionar CSVs">
           <input id="file-input" type="file" accept=".csv,.CSV" multiple hidden />
           <div class="dropzone__icon" aria-hidden="true">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
@@ -82,6 +83,31 @@
 
         <ul id="file-list" class="file-list" aria-live="polite"></ul>
 
+        <details class="settings">
+          <summary>Opções do relatório</summary>
+          <div class="settings__grid">
+            <div class="field-group">
+              <label class="field-label" for="client-input">Unidade de serviço</label>
+              <input
+                id="client-input"
+                class="text-input"
+                type="text"
+                value="US MINERAÇÃO VALE-VERDE"
+                autocomplete="organization"
+                maxlength="120"
+              />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="vibration-target-input">Índice de vibração (mm/s)</label>
+              <input id="vibration-target-input" class="text-input" type="number" value="0.8" min="0" step="0.01" inputmode="decimal" />
+            </div>
+            <label class="check-field" for="show-vibration-index-input">
+              <input id="show-vibration-index-input" type="checkbox" checked />
+              <span>Exibir índice no relatório</span>
+            </label>
+          </div>
+        </details>
+
         <div class="panel__actions">
           <button id="clear-btn" type="button" class="btn btn--ghost" hidden>Limpar</button>
           <button id="generate-btn" type="button" class="btn btn--primary" disabled>
@@ -94,12 +120,12 @@
       </section>
 
       <section id="results-section" class="results" hidden aria-labelledby="results-title">
-        <div class="section-head reveal">
+        <div class="section-head">
           <div>
-            <p class="eyebrow eyebrow--accent">02 · Saída</p>
-            <h2 id="results-title">Artefatos gerados</h2>
+            <p class="eyebrow eyebrow--accent">Saída</p>
+            <h2 id="results-title">Arquivos prontos</h2>
           </div>
-          <p class="section-head__text">Baixe individualmente ou tudo em um ZIP.</p>
+          <p class="section-head__text">Visualize ou baixe cada arquivo. O ZIP reúne tudo.</p>
         </div>
 
         <div class="tool-grid tool-grid--group" id="results-grid"></div>
@@ -113,7 +139,7 @@
       </section>
 
       <footer class="page-footer" aria-label="Rodapé">
-        <p class="page-footer__meta"><span class="page-footer__dot" aria-hidden="true"></span>Report Sismográfico · OpenBlast</p>
+        <p class="page-footer__meta"><span class="page-footer__dot" aria-hidden="true"></span>Report Sismográfico · USMVV</p>
         <p class="page-footer__meta">DNA · ENAEX</p>
       </footer>
     </main>

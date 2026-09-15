@@ -2,12 +2,11 @@
 // (FIGSIZE 6.5×4.55 in × 220 DPI) para que os PNGs entrem no PDF com o
 // mesmo aspect ratio esperado por _draw_chart_card.
 (() => {
-  const palette = window.SISMO_CONFIG?.branding?.palette || {};
   const COLORS = {
-    dark: palette.enaex_gray || "#38424B",
-    red: palette.series_transversal || palette.enaex_red || "#E20613",
-    green: palette.series_vertical || "#16A34A",
-    longitudinal: palette.series_longitudinal || palette.enaex_gray || "#38424B",
+    dark: "#2F3440",
+    red: "#E30613",
+    green: "#67C70A",
+    blue: "#2D7DBF",
     gray: "#6B7280",
     grid: "#B7BDC7",
     gridMinor: "#D7DCE5",
@@ -16,21 +15,22 @@
   };
 
   const DPI = 220;
-  // Mantemos a proporção vertical do renderer Python (matplotlib 6.5×4.55in).
-  // A versão anterior reduzia a figura para 2.9in de altura e achatava a área
-  // dos eixos quando o PNG era encaixado no cartão A4.
+  // Casamos o aspect ratio do canvas com o slot interno de cada chart card no PDF
+  // (chart_w=261.1, chart_h=146 → interno ~243×108 → aspect 2.25), assim o
+  // gráfico preenche o card sem margens brancas em cima/embaixo.
+  // Mantemos densidade em px equivalente a matplotlib 6.5×2.9in @ 220 DPI.
   const FIG_W_IN = 6.5;
-  const FIG_H_IN = 4.55;
+  const FIG_H_IN = FIG_W_IN / 2.25; // ~2.888 in
   const CANVAS_W = Math.round(FIG_W_IN * DPI); // 1430
-  const CANVAS_H = Math.round(FIG_H_IN * DPI); // 1001
+  const CANVAS_H = Math.round(FIG_H_IN * DPI); // 635
 
-  // Layout dos "axes" dentro da figura (fração da figura), reservando espaço
-  // para título, rótulos e legenda externa como no renderer Python.
+  // Layout dos "axes" dentro da figura (fração da figura). Compactamos as margens
+  // porque a área útil ficou menor.
   const AX_MARGIN = {
-    left: 0.07,
-    right: 0.86, // legenda externa permanece fora da área dos eixos
-    top: 0.89,
-    bottom: 0.13,
+    left: 0.09,
+    right: 0.79, // deixa espaço para a legenda externa
+    top: 0.86,
+    bottom: 0.18,
   };
 
   // ------- helpers gerais -------
@@ -574,8 +574,8 @@
 
     const axesDefs = [
       { label: "Transversal", ppvKey: "tran_ppv_mm_s", freqKey: "tran_freq_hz", marker: "s", color: COLORS.red },
-      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: COLORS.longitudinal },
-      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: COLORS.green },
+      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: "#1D4ED8" },
+      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: "#16A34A" },
     ];
 
     const freqs = [];

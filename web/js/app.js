@@ -13,6 +13,9 @@
   const resultsGrid = document.getElementById("results-grid");
   const zipLink = document.getElementById("zip-link");
   const zipMeta = document.getElementById("zip-meta");
+  const clientInput = document.getElementById("client-input");
+  const vibrationTargetInput = document.getElementById("vibration-target-input");
+  const showVibrationIndexInput = document.getElementById("show-vibration-index-input");
 
   /** @type {File[]} */
   let selected = [];
@@ -182,6 +185,22 @@
     if (selected.length === 0) return;
 
     const cfg = window.SISMO_CONFIG;
+    const clientName = String(clientInput?.value || "").trim();
+    if (!clientName) {
+      clientInput?.focus();
+      throw new Error("Informe a unidade de serviço antes de gerar o relatório.");
+    }
+    // O valor digitado substitui o padrão apenas nesta execução; a configuração
+    // permanece com US MINERAÇÃO VALE-VERDE para a próxima abertura do site.
+    cfg.project.client_override = clientName;
+    const target = Number(String(vibrationTargetInput?.value || "").trim().replace(",", "."));
+    if (!Number.isFinite(target) || target < 0) {
+      vibrationTargetInput?.focus();
+      throw new Error("Informe um target de vibração válido, maior ou igual a zero.");
+    }
+    cfg.limits.vibration_status_mm_s = target;
+    cfg.report = cfg.report || {};
+    cfg.report.show_vibration_index = showVibrationIndexInput?.checked !== false;
     setStatus(`Processando ${selected.length} sismograma(s)…`);
 
     // 1) Parse.
@@ -191,7 +210,9 @@
       rawRecords.push(window.SismoParser.parseSismoCsv(file.name, text));
     }
     // 2) Compliance.
-    const records = window.SismoCompliance.evaluateRecords(rawRecords, cfg);
+    window.SismoValidation.validateRecords(rawRecords, cfg);
+    const orderedRecords = window.SismoValidation.orderRecords(rawRecords, cfg);
+    const records = window.SismoCompliance.evaluateRecords(orderedRecords, cfg);
     const summary = window.SismoCompliance.campaignSummary(records, cfg);
 
     // 3) Charts em canvas.
@@ -206,7 +227,7 @@
       summary,
       config: cfg,
       chartCanvases: { pressure: pressureCanvas, vibration: vibrationCanvas },
-      logoUrl: cfg.branding?.logo_path || "assets/enaex_logo_horizontal.png",
+      logoUrl: cfg.branding?.logo_path || "assets/openblast.png",
     });
 
     // 5) PDF → PNG (300 DPI).
@@ -259,24 +280,24 @@
         key: "whatsapp",
         number: "01",
         title: "Nota para WhatsApp",
-        description: "Texto formatado com PVS, PSPL e status de conformidade por ponto.",
-        category: "txt · WhatsApp",
+        description: "Resumo pronto para encaminhar.",
+        category: "TXT · WhatsApp",
         previewLabel: "Ver texto",
       },
       {
         key: "pdf",
         number: "02",
         title: "Relatório onepage",
-        description: "PDF com gráficos NBR 9653, tabela de resultados e cabeçalho ENAEX.",
-        category: "pdf · Relatório",
+        description: "Uma página com resumo, gráficos e pontos.",
+        category: "PDF · Relatório",
         previewLabel: "Abrir PDF",
       },
       {
         key: "png",
         number: "03",
         title: "Imagem do relatório",
-        description: "Versão em imagem do relatório onepage, pronta para anexo.",
-        category: "png · Imagem",
+        description: "Imagem A4 completa, pronta para anexo.",
+        category: "PNG · Imagem",
         previewLabel: "Ver imagem",
       },
     ];
