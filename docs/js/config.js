@@ -31,7 +31,8 @@ window.SISMO_CONFIG = {
   },
   charts: {
     figure_width: 9.0,
-    figure_height: 4.4,
+    figure_height: 5.0,
+    web_figure_width: 6.5,
     figure_dpi: 220,
     title_font_size: 11.0,
     axis_label_font_size: 9.0,
@@ -55,7 +56,7 @@ window.SISMO_CONFIG = {
     chart_column_gap: 14.0,
     chart_inner_padding: 6.0,
     chart_header_height: 22.0,
-    chart_to_points_gap: 28.0,
+    chart_to_points_gap: 16.0,
     charts_top_limit: 484.0,
     footer_height: 30.0,
     footer_accent_height: 2.0,

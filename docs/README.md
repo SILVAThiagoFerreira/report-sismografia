@@ -19,14 +19,24 @@ Antes da geração, o usuário informa a unidade de serviço no campo
 preenchido é aplicado ao cabeçalho e ao escopo do relatório somente naquela
 execução.
 
-## Paleta Enaex
+## Paleta ENAEX
 
-A paleta do relatório é configurada em `js/config.js`, no objeto
-`branding.palette`: Cinza Enaex `#38424B` para cabeçalhos, elementos estruturais
-e a série longitudinal; Vermelho Enaex `#E20613` para títulos, destaques e a
-série transversal; variações de branco/cinza para fundos e rótulos. A série
-vertical mantém o verde `#16A34A` e o verde `#67C70A` fica reservado aos estados
-de conformidade. O template não usa azul.
+A identidade do relatório é centralizada em `js/config.js`, no objeto
+`branding.palette`: Cinza Enaex `#38424B`, Vermelho Enaex `#E20613` e variações
+de branco/cinza nos fundos e rótulos. A série longitudinal usa Cinza Enaex,
+a série vertical mantém o verde `#16A34A` e o verde `#67C70A` fica reservado
+à conformidade positiva; nenhum azul é usado no template.
+
+O formulário também permite informar o target executivo de vibração em mm/s
+(inicialmente `0,8`) e escolher se a linha “Índices de vibração” será exibida
+no relatório. O target continua sendo aplicado à avaliação do limite executivo
+e à nota para WhatsApp; a caixa de seleção controla apenas a visibilidade da
+linha no PDF.
+
+Para até três pontos, PDF e PNG formam uma única página A4 com resumo, os dois
+gráficos normativos e os cartões dos pontos. Campanhas com datas de evento
+misturadas ou campos essenciais inválidos são rejeitadas antes da geração.
+Qualificadores instrumentais `<` e `>` são preservados nos valores exibidos.
 
 ## Testar localmente
 
@@ -41,14 +51,14 @@ navegador exige `http://` para carregar módulos e CDNs).
 
 ## Publicação atual no GitHub Pages
 
-Este é o diretório efetivamente servido: branch `main`, pasta `/docs`, no
-repositório `SILVAThiagoFerreira/report-sismografia`.
+O gerador está publicado em
+<https://silvathiagoferreira.github.io/report-sismografia/> no repositório
+`SILVAThiagoFerreira/report-sismografia`. A configuração atual do Pages usa a
+branch `main` na pasta `/docs`. Portanto, `pages/` é a fonte de trabalho local;
+antes do push, seu conteúdo deve ser sincronizado com `docs/`.
 
-URL: <https://silvathiagoferreira.github.io/report-sismografia/>.
-
-Os CSVs são lidos e processados somente no navegador. Para até três pontos, o
-PDF e o PNG são uma única página A4; datas de evento misturadas e registros
-incompletos são rejeitados antes da geração.
+Não publique CSVs de operação, logs ou pastas `output/`: o gerador processa os
+arquivos escolhidos somente em memória no navegador.
 
 ## Estrutura
 
@@ -86,11 +96,12 @@ Testado com os três CSVs de referência do projeto:
   quebras de linha do Windows).
 - **Compliance NBR 9653**: interpolação da curva com o mesmo algoritmo.
 - **Layout do PDF**: a primeira página concentra resumo, gráficos e pontos
-  monitorados para campanhas de até três pontos (origem A4 no canto inferior
-  esquerdo, 1 pt = 1/72").
-- **Gráficos**: canvas 1430×635, mesma paleta e curva NBR com quebra de eixo Y
-  quando aplicável. A área dos eixos usa margens compactas para preservar a
-  leitura dentro dos cartões A4.
+  monitorados para campanhas de até três pontos. O pdf-lib usa a mesma origem
+  A4 do reportlab (canto inferior esquerdo, 1 pt = 1/72").
+- **Gráficos**: canvas 1430×794, mesma paleta e curva NBR com quebra de eixo Y
+  quando aplicável. A proporção é derivada de `figure_width`/`figure_height`
+  em `js/config.js`; a área dos eixos usa margens compactas para preservar a
+  leitura dentro dos cartões A4 mais altos.
 
 Para editar limites, textos institucionais ou paleta, edite
 `js/config.js` — os módulos leem `window.SISMO_CONFIG` no momento do run.

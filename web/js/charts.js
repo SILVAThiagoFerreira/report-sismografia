@@ -1,6 +1,7 @@
-// Port de src/charts.py em Canvas 2D. Replica dimensões matplotlib
-// (FIGSIZE 6.5×4.55 in × 220 DPI) para que os PNGs entrem no PDF com o
-// mesmo aspect ratio esperado por _draw_chart_card.
+// Port de src/charts.py em Canvas 2D. A proporção do raster web acompanha
+// charts.figure_width/figure_height do contrato compartilhado; a largura web
+// permanece configurável em charts.web_figure_width para preservar a escala
+// tipográfica e a nitidez do card no PDF.
 (() => {
   const COLORS = {
     dark: "#2F3440",
@@ -15,14 +16,34 @@
   };
 
   const DPI = 220;
-  // Casamos o aspect ratio do canvas com o slot interno de cada chart card no PDF
-  // (chart_w=261.1, chart_h=146 → interno ~243×108 → aspect 2.25), assim o
-  // gráfico preenche o card sem margens brancas em cima/embaixo.
-  // Mantemos densidade em px equivalente a matplotlib 6.5×2.9in @ 220 DPI.
-  const FIG_W_IN = 6.5;
-  const FIG_H_IN = FIG_W_IN / 2.25; // ~2.888 in
-  const CANVAS_W = Math.round(FIG_W_IN * DPI); // 1430
-  const CANVAS_H = Math.round(FIG_H_IN * DPI); // 635
+  const DEFAULT_FIGURE_WIDTH_IN = 9.0;
+  const DEFAULT_FIGURE_HEIGHT_IN = 5.0;
+  const DEFAULT_WEB_FIGURE_WIDTH_IN = 6.5;
+
+  const canvasDimensions = (config = {}) => {
+    const chartCfg = config.charts || {};
+    const figureWidthIn = Number(chartCfg.figure_width ?? DEFAULT_FIGURE_WIDTH_IN);
+    const figureHeightIn = Number(chartCfg.figure_height ?? DEFAULT_FIGURE_HEIGHT_IN);
+    const webFigureWidthIn = Number(chartCfg.web_figure_width ?? DEFAULT_WEB_FIGURE_WIDTH_IN);
+    const dpi = Number(chartCfg.figure_dpi ?? DPI);
+    if (![figureWidthIn, figureHeightIn, webFigureWidthIn, dpi].every(Number.isFinite) ||
+        [figureWidthIn, figureHeightIn, webFigureWidthIn, dpi].some((value) => value <= 0)) {
+      throw new Error("Configuração inválida: dimensões do gráfico devem ser positivas.");
+    }
+    return {
+      width: Math.round(webFigureWidthIn * dpi),
+      height: Math.round(webFigureWidthIn * (figureHeightIn / figureWidthIn) * dpi),
+    };
+  };
+
+  const DEFAULT_CANVAS = canvasDimensions({
+    charts: {
+      figure_width: DEFAULT_FIGURE_WIDTH_IN,
+      figure_height: DEFAULT_FIGURE_HEIGHT_IN,
+      web_figure_width: DEFAULT_WEB_FIGURE_WIDTH_IN,
+      figure_dpi: DPI,
+    },
+  });
 
   // Layout dos "axes" dentro da figura (fração da figura). Compactamos as margens
   // porque a área útil ficou menor.
@@ -486,11 +507,12 @@
     const chartCfg = config.charts || {};
     const limits = config.limits || {};
     const limit = Number(limits.sound_pressure_db ?? 134);
+    const { width: canvasW, height: canvasH } = canvasDimensions(config);
 
-    const canvas = createCanvas(CANVAS_W, CANVAS_H);
+    const canvas = createCanvas(canvasW, canvasH);
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.fillRect(0, 0, canvasW, canvasH);
 
     const filtered = records.filter(
       (r) => r.gps_distance_m != null && r.pspl_db != null
@@ -504,10 +526,10 @@
     const yMin = Number(chartCfg.pressure_y_min ?? 0);
 
     const box = {
-      x: CANVAS_W * AX_MARGIN.left,
-      y: CANVAS_H * (1 - AX_MARGIN.top),
-      w: CANVAS_W * (AX_MARGIN.right - AX_MARGIN.left),
-      h: CANVAS_H * (AX_MARGIN.top - AX_MARGIN.bottom),
+      x: canvasW * AX_MARGIN.left,
+      y: canvasH * (1 - AX_MARGIN.top),
+      w: canvasW * (AX_MARGIN.right - AX_MARGIN.left),
+      h: canvasH * (AX_MARGIN.top - AX_MARGIN.bottom),
     };
     const ax = new Axes(ctx, box, [xMin, xMax], [yMin, yMax]);
 
@@ -604,18 +626,19 @@
     const curveYMin = curveYs.length ? Math.min(...curveYs) : 15;
     const curveYMax = curveYs.length ? Math.max(...curveYs) : 50;
     const shouldBreakY = useBrokenY && maxPpv < curveYMin * 0.25;
+    const { width: canvasW, height: canvasH } = canvasDimensions(config);
 
-    const canvas = createCanvas(CANVAS_W, CANVAS_H);
+    const canvas = createCanvas(canvasW, canvasH);
     const ctx = canvas.getContext("2d");
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.fillRect(0, 0, canvasW, canvasH);
     const xMin = Number(chartCfg.vibration_x_min ?? 0);
     const yMinFocus = Number(chartCfg.vibration_y_min ?? 0);
 
-    const outerLeft = CANVAS_W * AX_MARGIN.left;
-    const outerRight = CANVAS_W * AX_MARGIN.right;
-    const outerTop = CANVAS_H * (1 - AX_MARGIN.top);
-    const outerBottom = CANVAS_H * (1 - AX_MARGIN.bottom);
+    const outerLeft = canvasW * AX_MARGIN.left;
+    const outerRight = canvasW * AX_MARGIN.right;
+    const outerTop = canvasH * (1 - AX_MARGIN.top);
+    const outerBottom = canvasH * (1 - AX_MARGIN.bottom);
     const outerW = outerRight - outerLeft;
     const outerH = outerBottom - outerTop;
 
@@ -806,7 +829,8 @@
     makeVibrationChart,
     canvasToPngBytes,
     canvasToDataURL,
-    CANVAS_W,
-    CANVAS_H,
+    CANVAS_W: DEFAULT_CANVAS.width,
+    CANVAS_H: DEFAULT_CANVAS.height,
+    canvasDimensions,
   };
 })();

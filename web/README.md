@@ -14,10 +14,29 @@ artefatos com nomes idênticos ao original, além de um ZIP:
 - `ENAEX_NSR-<YYYYMMDD>.png`
 - `ENAEX_NSR-<YYYYMMDD>_report.zip`
 
-Para até três pontos, o PDF e o PNG são uma única página A4 com resumo,
-gráficos normativos e cartões dos pontos. A validação rejeita campos
-essenciais ausentes, números inválidos e datas de evento misturadas; os
-qualificadores instrumentais `<` e `>` são preservados.
+Antes da geração, o usuário informa a unidade de serviço no campo
+**Unidade de serviço**. O valor inicial é `US MINERAÇÃO VALE-VERDE` e o texto
+preenchido é aplicado ao cabeçalho e ao escopo do relatório somente naquela
+execução.
+
+## Paleta ENAEX
+
+A identidade do relatório é centralizada em `js/config.js`, no objeto
+`branding.palette`: Cinza Enaex `#38424B`, Vermelho Enaex `#E20613` e variações
+de branco/cinza nos fundos e rótulos. A série longitudinal usa Cinza Enaex,
+a série vertical mantém o verde `#16A34A` e o verde `#67C70A` fica reservado
+à conformidade positiva; nenhum azul é usado no template.
+
+O formulário também permite informar o target executivo de vibração em mm/s
+(inicialmente `0,8`) e escolher se a linha “Índices de vibração” será exibida
+no relatório. O target continua sendo aplicado à avaliação do limite executivo
+e à nota para WhatsApp; a caixa de seleção controla apenas a visibilidade da
+linha no PDF.
+
+Para até três pontos, PDF e PNG formam uma única página A4 com resumo, os dois
+gráficos normativos e os cartões dos pontos. Campanhas com datas de evento
+misturadas ou campos essenciais inválidos são rejeitadas antes da geração.
+Qualificadores instrumentais `<` e `>` são preservados nos valores exibidos.
 
 ## Testar localmente
 
@@ -32,11 +51,14 @@ navegador exige `http://` para carregar módulos e CDNs).
 
 ## Publicação atual no GitHub Pages
 
-O repositório `SILVAThiagoFerreira/report-sismografia` publica a branch `main`
-na pasta `/docs` em
-<https://silvathiagoferreira.github.io/report-sismografia/>. Mantenha `web/`
-como fonte de trabalho e sincronize os arquivos da aplicação com `docs/` antes
-do push. O site é estático: os CSVs permanecem no dispositivo do usuário.
+O gerador está publicado em
+<https://silvathiagoferreira.github.io/report-sismografia/> no repositório
+`SILVAThiagoFerreira/report-sismografia`. A configuração atual do Pages usa a
+branch `main` na pasta `/docs`. Portanto, `pages/` é a fonte de trabalho local;
+antes do push, seu conteúdo deve ser sincronizado com `docs/`.
+
+Não publique CSVs de operação, logs ou pastas `output/`: o gerador processa os
+arquivos escolhidos somente em memória no navegador.
 
 ## Estrutura
 
@@ -73,13 +95,13 @@ Testado com os três CSVs de referência do projeto:
 - **Nota WhatsApp**: byte-a-byte idêntica (excluindo `\r\n` vs `\n` de
   quebras de linha do Windows).
 - **Compliance NBR 9653**: interpolação da curva com o mesmo algoritmo.
-- **Layout do PDF**: coordenadas idênticas ao `report.py` (origem A4 canto
-  inferior esquerdo, 1 pt = 1/72"). Diferença conhecida: o pdf-lib com fonte
-  Helvetica não codifica `■` (U+25A0) — substituímos por `•` na única
-  ocorrência (linha "Índices de vibração" do escopo).
-- **Gráficos**: canvas 1430×635, mesma paleta e mesmos marcadores (quadrado
-  vermelho / diamante azul / triângulo verde), curva NBR com quebra de eixo
-  Y quando aplicável.
+- **Layout do PDF**: a primeira página concentra resumo, gráficos e pontos
+  monitorados para campanhas de até três pontos. O pdf-lib usa a mesma origem
+  A4 do reportlab (canto inferior esquerdo, 1 pt = 1/72").
+- **Gráficos**: canvas 1430×794, mesma paleta e curva NBR com quebra de eixo Y
+  quando aplicável. A proporção é derivada de `figure_width`/`figure_height`
+  em `js/config.js`; a área dos eixos usa margens compactas para preservar a
+  leitura dentro dos cartões A4 mais altos.
 
 Para editar limites, textos institucionais ou paleta, edite
 `js/config.js` — os módulos leem `window.SISMO_CONFIG` no momento do run.

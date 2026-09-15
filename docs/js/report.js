@@ -10,7 +10,7 @@
   const POINT_CARD_HEIGHT = 58;
   const POINT_CARD_GAP = 14;
   const POINTS_TITLE_GAP = 22;
-  const CHART_TO_POINTS_GAP = 28;
+  const CHART_TO_POINTS_GAP = 16;
   const CHARTS_TOP_LIMIT = 484;
   const MARGIN = 28;
 
