@@ -25,7 +25,7 @@ A identidade do relatório é centralizada em `js/config.js`, no objeto
 `branding.palette`: Cinza Enaex `#38424B`, Vermelho Enaex `#E20613` e variações
 de branco/cinza nos fundos e rótulos. A série longitudinal usa Cinza Enaex,
 a série vertical mantém o verde `#16A34A` e o verde `#67C70A` fica reservado
-à conformidade positiva; nenhum azul é usado no template.
+à conformidade positiva; os cabeçalhos, cards e rodapé seguem o cinza Enaex.
 
 O formulário também permite informar o target executivo de vibração em mm/s
 (inicialmente `0,8`) e escolher se a linha “Índices de vibração” será exibida
@@ -33,8 +33,11 @@ no relatório. O target continua sendo aplicado à avaliação do limite executi
 e à nota para WhatsApp; a caixa de seleção controla apenas a visibilidade da
 linha no PDF.
 
-Para até três pontos, PDF e PNG formam uma única página A4 com resumo, os dois
-gráficos normativos e os cartões dos pontos. Campanhas com datas de evento
+Para até três pontos, PDF e PNG formam uma única página A4 com “Resumo da
+Campanha Realizada”, escopo, conclusão, os dois gráficos normativos e os
+cartões dos pontos. Os gráficos usam cards de 162 pt e 28 pt de distância até
+“Pontos Monitorados”; os status ficam em pills verdes com ícone de check.
+Campanhas com datas de evento
 misturadas ou campos essenciais inválidos são rejeitadas antes da geração.
 Qualificadores instrumentais `<` e `>` são preservados nos valores exibidos.
 
@@ -92,16 +95,15 @@ Todas via CDN, versões pinadas em `index.html`:
 
 Testado com os três CSVs de referência do projeto:
 
-- **Nota WhatsApp**: byte-a-byte idêntica (excluindo `\r\n` vs `\n` de
-  quebras de linha do Windows).
+- **Nota WhatsApp**: byte-a-byte idêntica ao artefato de referência, incluindo
+  as quebras de linha Windows (`\r\n`).
 - **Compliance NBR 9653**: interpolação da curva com o mesmo algoritmo.
 - **Layout do PDF**: a primeira página concentra resumo, gráficos e pontos
   monitorados para campanhas de até três pontos. O pdf-lib usa a mesma origem
   A4 do reportlab (canto inferior esquerdo, 1 pt = 1/72").
-- **Gráficos**: canvas 1430×794, mesma paleta e curva NBR com quebra de eixo Y
+- **Gráficos**: canvas 1430×699, mesma paleta e curva NBR com quebra de eixo Y
   quando aplicável. A proporção é derivada de `figure_width`/`figure_height`
-  em `js/config.js`; a área dos eixos usa margens compactas para preservar a
-  leitura dentro dos cartões A4 mais altos.
+  em `js/config.js`; a área dos eixos preserva a composição A4 da referência.
 
 Para editar limites, textos institucionais ou paleta, edite
 `js/config.js` — os módulos leem `window.SISMO_CONFIG` no momento do run.

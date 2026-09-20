@@ -51,7 +51,17 @@
 
   const orderRecords = (records, config) => {
     const order = config.processing?.record_order || "source_order";
-    if (order === "source_order") return records;
+    if (order === "source_order") {
+      // O parser Python percorre os caminhos em ordem estável; ordenar pelos
+      // nomes recebidos mantém o mesmo contrato quando o usuário seleciona
+      // os arquivos em uma ordem diferente no navegador.
+      return [...records].sort((a, b) =>
+        String(a.source_file || a.point_name || "").localeCompare(
+          String(b.source_file || b.point_name || ""),
+          "pt-BR"
+        )
+      );
+    }
     if (order !== "gps_distance_ascending") throw new Error(`Ordenação configurada não suportada: ${order}.`);
     return [...records].sort((a, b) => {
       const aMissing = a.gps_distance_m === null || a.gps_distance_m === undefined;

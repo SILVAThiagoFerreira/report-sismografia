@@ -174,8 +174,11 @@
     const scale = dpi / 72; // pdf.js usa unidades de 72 DPI por padrão.
     const viewport = page.getViewport({ scale });
     const canvas = document.createElement("canvas");
-    canvas.width = Math.floor(viewport.width);
-    canvas.height = Math.floor(viewport.height);
+    // A4 at 300 DPI is fractional in PDF points.  Width is rounded up and
+    // height to the nearest pixel to retain the reference 2481x3508 raster
+    // dimensions without adding an extra row to the PNG.
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.round(viewport.height);
     const ctx = canvas.getContext("2d");
     await page.render({ canvasContext: ctx, viewport }).promise;
     return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));

@@ -31,7 +31,7 @@ window.SISMO_CONFIG = {
   },
   charts: {
     figure_width: 9.0,
-    figure_height: 5.0,
+    figure_height: 4.4,
     web_figure_width: 6.5,
     figure_dpi: 220,
     title_font_size: 11.0,
@@ -56,7 +56,7 @@ window.SISMO_CONFIG = {
     chart_column_gap: 14.0,
     chart_inner_padding: 6.0,
     chart_header_height: 22.0,
-    chart_to_points_gap: 16.0,
+    chart_to_points_gap: 28.0,
     charts_top_limit: 484.0,
     footer_height: 30.0,
     footer_accent_height: 2.0,
@@ -66,7 +66,7 @@ window.SISMO_CONFIG = {
     status_badge_radius: 6.0,
   },
   report_text: {
-    executive_title: "Resumo Executivo",
+    executive_title: "Resumo da Campanha Realizada",
     scope_title: "Escopo da Campanha",
     conclusion_title: "Conclusão Técnica",
     points_title: "Pontos Monitorados",
@@ -76,7 +76,7 @@ window.SISMO_CONFIG = {
   },
   processing: {
     require_single_event_date: true,
-    record_order: "gps_distance_ascending",
+    record_order: "source_order",
   },
   report: {
     show_vibration_index: true,
