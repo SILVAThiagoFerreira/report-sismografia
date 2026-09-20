@@ -27,10 +27,11 @@ exatamente o mesmo parser, validação, avaliação e exportação dos arquivos 
 ## Paleta ENAEX
 
 A identidade do relatório é centralizada em `js/config.js`, no objeto
-`branding.palette`: Cinza Enaex `#38424B`, Vermelho Enaex `#E20613` e variações
-de branco/cinza nos fundos e rótulos. A série longitudinal usa Cinza Enaex,
-a série vertical mantém o verde `#16A34A` e o verde `#67C70A` fica reservado
-à conformidade positiva; os cabeçalhos, cards e rodapé seguem o cinza Enaex.
+`branding.palette`: branco como superfície principal, Cinza Enaex `#38424B`
+para títulos, Vermelho Enaex `#E20613` nos acentos e variações de branco/cinza
+nos fundos e rótulos. A série longitudinal usa Cinza Enaex, a série vertical
+mantém o verde `#16A34A` e o verde `#67C70A` fica reservado à conformidade
+positiva; cards e rodapé são claros, com regras finas e sem sombras pesadas.
 
 O formulário também permite informar o target executivo de vibração em mm/s
 (inicialmente `0,8`) e escolher se a linha “Índices de vibração” será exibida
@@ -41,7 +42,8 @@ linha no PDF.
 Para até três pontos, PDF e PNG formam uma única página A4 com “Resumo da
 Campanha Realizada”, escopo, conclusão, os dois gráficos normativos e os
 cartões dos pontos. Os gráficos usam cards de 174 pt e 16 pt de distância até
-“Pontos Monitorados”; os status ficam em pills verdes com ícone de check.
+“Pontos Monitorados”; os status ficam em badges semânticos claros com ícone
+compacto, e os cabeçalhos de seção usam regra fina com acento vermelho.
 Campanhas com datas de evento
 misturadas ou campos essenciais inválidos são rejeitadas antes da geração.
 Qualificadores instrumentais `<` e `>` são preservados nos valores exibidos.

@@ -24,9 +24,16 @@
     line: palette.gray_200 || "#D9DEE7",
     light_green: palette.gray_50 || "#F7F8FA",
     shadow: palette.gray_300 || "#E1E5EA",
+    white: palette.white || "#FFFFFF",
     header_band: palette.gray_100 || "#E8EAEE",
     header_client: "#697386",
     status_gray: palette.status_ausente || "#9AA1AC",
+    status_conforme_bg: palette.status_conforme_bg || "#EAF7D5",
+    status_conforme_text: palette.status_conforme_text || "#3F7600",
+    status_verificar_bg: palette.status_verificar_bg || "#FDE8E7",
+    status_verificar_text: palette.status_verificar_text || "#A4232B",
+    status_ausente_bg: palette.status_ausente_bg || "#F2F3F5",
+    status_ausente_text: palette.status_ausente_text || "#667085",
   };
 
   const hexToRgb = (hex) => {
@@ -73,13 +80,18 @@
   };
 
   const drawRoundRect = (page, opts, pdflib) => {
-    const { x, y, w, h, radius = 5, fill = "#FFFFFF", shadow = true } = opts;
+    const { x, y, w, h, radius = 3, fill = "#FFFFFF", shadow = false, stroke = null, borderWidth = 0.55 } = opts;
     if (shadow) {
       drawRoundedFill(page, x + 2, y - 2, w, h, radius, COLORS.shadow, pdflib);
     }
     drawRoundedFill(page, x, y, w, h, radius, fill, pdflib);
-    // O contrato atual não usa contornos nos cards; o preenchimento
-    // arredondado mantém a mesma linguagem visual do ReportLab.
+    if (stroke) {
+      page.drawRectangle({
+        x, y, width: w, height: h,
+        borderColor: rgbColor(stroke, pdflib),
+        borderWidth,
+      });
+    }
   };
 
   // Fontes Standard do pdf-lib (Helvetica) usam WinAnsi. Substituímos glifos
@@ -105,12 +117,22 @@
     });
   };
 
-  const drawSectionHeader = (page, x, y, w, h, title, color, fonts, pdflib, align = "left") => {
-    drawRoundedFill(page, x, y, w, h, 5, color, pdflib);
+  const drawSectionHeader = (page, x, y, w, h, title, color, fonts, pdflib, align = "left", ruleWidth = 0.85, accentWidth = 26) => {
+    page.drawLine({
+      start: { x, y: y + h - 1 },
+      end: { x: x + w, y: y + h - 1 },
+      color: rgbColor(COLORS.line, pdflib),
+      thickness: ruleWidth,
+    });
+    const accentX = align === "center" ? x + (w - accentWidth) / 2 : x;
+    page.drawRectangle({
+      x: accentX, y: y + h - 2, width: accentWidth, height: 2,
+      color: rgbColor(COLORS.red, pdflib),
+    });
     const safeTitle = sanitizeForWinAnsi(title);
-    const titleWidth = fonts.bold.widthOfTextAtSize(safeTitle, 10);
+    const titleWidth = fonts.bold.widthOfTextAtSize(safeTitle, 9);
     const textX = align === "center" ? x + (w - titleWidth) / 2 : x + 12;
-    drawText(page, title, textX, y + h - 13, 10, "#FFFFFF", true, fonts, pdflib);
+    drawText(page, title, textX, y + h - 13, 9, color || COLORS.dark, true, fonts, pdflib);
   };
 
   const fitImage = (page, image, x, y, w, h) => {
@@ -135,56 +157,36 @@
     if (assets.logo) {
       fitImage(page, assets.logo, margin, PAGE_H - 62, 112, 30);
     }
-    // Selo geométrico: círculo com número de pontos.
-    page.drawCircle({
-      x: PAGE_W - 52, y: PAGE_H - 46, size: 14,
-      borderColor: rgbColor(COLORS.dark, pdflib),
-      borderWidth: 1,
-    });
-    drawText(page, String(records.length), PAGE_W - 55, PAGE_H - 50, 12, COLORS.dark, true, fonts, pdflib);
-
-    const x = margin;
-    const y = PAGE_H - 144;
-    const w = PAGE_W - 2 * margin;
-    const h = 78;
-    drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    // Faixa superior cinza clara.
-    drawRoundedFill(page, x, y + h - 10, w, 10, 5, COLORS.header_band, pdflib);
-    drawText(page, config.project?.title || "MONITORAMENTO SISMOGRÁFICO", x + 22, y + 46, 15, COLORS.red, true, fonts, pdflib);
+    const title = config.project?.title || "MONITORAMENTO SISMOGRÁFICO";
     const client = summary.client || config.project?.client_default || "US MINERAÇÃO VALE-VERDE";
-    drawText(page, String(client).toUpperCase(), x + 22, y + 26, 11, COLORS.header_client, true, fonts, pdflib);
-    const arrowOffset = Number(config.report_layout?.header_points_arrow_offset ?? 12);
-    const arrowWidth = Number(config.report_layout?.header_points_arrow_width ?? 14);
-    const arrowGap = Number(config.report_layout?.header_points_arrow_gap ?? 8);
-    const arrowLineWidth = Number(config.report_layout?.header_points_arrow_line_width ?? 1.5);
-    const arrowStartX = x + arrowOffset;
-    const arrowTipX = arrowStartX + arrowWidth;
-    const arrowY = y + 14;
-    const arrowHead = Math.min(3.5, arrowWidth * 0.3);
-    page.drawLine({
-      start: { x: arrowStartX, y: arrowY },
-      end: { x: arrowTipX - arrowHead, y: arrowY },
+    const eventDate = fmtDateIso(summary.event_date);
+    drawText(page, String(title), margin, PAGE_H - 105, 15, COLORS.dark, true, fonts, pdflib);
+    page.drawRectangle({
+      x: margin, y: PAGE_H - 112, width: 30, height: 1.5,
       color: rgbColor(COLORS.red, pdflib),
-      thickness: arrowLineWidth,
     });
+    drawText(page, String(client).toUpperCase(), margin, PAGE_H - 127, 10.5, COLORS.muted, true, fonts, pdflib);
+    drawText(page, `${eventDate}  |  ${records.length} pontos monitorados`, margin, PAGE_H - 143, 7.5, COLORS.muted, false, fonts, pdflib);
     page.drawLine({
-      start: { x: arrowTipX, y: arrowY },
-      end: { x: arrowTipX - arrowHead, y: arrowY + arrowHead * 0.7 },
-      color: rgbColor(COLORS.red, pdflib),
-      thickness: arrowLineWidth,
+      start: { x: margin, y: PAGE_H - 151 },
+      end: { x: PAGE_W - margin, y: PAGE_H - 151 },
+      color: rgbColor(COLORS.line, pdflib),
+      thickness: 0.65,
     });
-    page.drawLine({
-      start: { x: arrowTipX, y: arrowY },
-      end: { x: arrowTipX - arrowHead, y: arrowY - arrowHead * 0.7 },
-      color: rgbColor(COLORS.red, pdflib),
-      thickness: arrowLineWidth,
-    });
-    drawText(page, `${records.length} ponto(s)`, x + arrowOffset + arrowWidth + arrowGap, y + 12, 8, COLORS.text, true, fonts, pdflib);
+    const meta = `RELATÓRIO TÉCNICO  |  ${records.length} PONTOS`;
+    const metaWidth = fonts.regular.widthOfTextAtSize(sanitizeForWinAnsi(meta), 7);
+    drawText(page, meta, PAGE_W - margin - metaWidth, PAGE_H - 46, 7, COLORS.muted, false, fonts, pdflib);
   };
 
   const drawScope = (page, x, y, w, h, config, records, summary, fonts, pdflib) => {
-    drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    drawSectionHeader(page, x, y + h - 20, w, 20, config.report_text?.scope_title || "Escopo da Campanha", COLORS.dark, fonts, pdflib);
+    const reportLayout = config.report_layout || {};
+    const radius = Number(reportLayout.card_radius ?? 3);
+    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
+    const headerHeight = Number(reportLayout.section_header_height ?? 20);
+    const ruleWidth = Number(reportLayout.section_rule_width ?? 0.85);
+    const accentWidth = Number(reportLayout.section_accent_width ?? 26);
+    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
+    drawSectionHeader(page, x + 12, y + h - headerHeight, w - 24, headerHeight, config.report_text?.scope_title || "Escopo da Campanha", COLORS.dark, fonts, pdflib, "left", ruleWidth, accentWidth);
     const y0 = y + h - 32;
     const eventDate = fmtDateIso(summary.event_date);
     const client = summary.client || config.project?.client_default || "N/D";
@@ -204,8 +206,14 @@
   };
 
   const drawConclusion = (page, x, y, w, h, records, summary, config, fonts, pdflib) => {
-    drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    drawSectionHeader(page, x, y + h - 20, w, 20, config.report_text?.conclusion_title || "Conclusão Técnica", COLORS.dark, fonts, pdflib);
+    const reportLayout = config.report_layout || {};
+    const radius = Number(reportLayout.card_radius ?? 3);
+    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
+    const headerHeight = Number(reportLayout.section_header_height ?? 20);
+    const ruleWidth = Number(reportLayout.section_rule_width ?? 0.85);
+    const accentWidth = Number(reportLayout.section_accent_width ?? 26);
+    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
+    drawSectionHeader(page, x + 12, y + h - headerHeight, w - 24, headerHeight, config.report_text?.conclusion_title || "Conclusão Técnica", COLORS.dark, fonts, pdflib, "left", ruleWidth, accentWidth);
     const rows = [
       ["Conformidade", summary.all_conforme_abnt ? "Todos os pontos abaixo dos limites da ABNT NBR 9653:2018." : "Há ponto(s) acima de limite ou com dado ausente para avaliação."],
       ["Maior PSPL", `${fmtNum(summary.max_pspl?.value_db, 1, true, summary.max_pspl?.qualifier)} dB(L) | ${summary.max_pspl?.point_name || "N/D"}`],
@@ -220,13 +228,9 @@
     for (let i = 0; i < rows.length; i++) {
       const [label, value] = rows[i];
       const yy = tableY + (rows.length - 1 - i) * rowH;
-      page.drawRectangle({
-        x: tableX, y: yy, width: col1, height: rowH,
-        color: rgbColor(COLORS.light_green, pdflib),
-      });
       if (i < rows.length - 1) {
         page.drawLine({
-          start: { x: tableX + col1, y: yy },
+          start: { x: tableX, y: yy },
           end: { x: tableX + totalW, y: yy },
           color: rgbColor(COLORS.line, pdflib),
           thickness: 0.4,
@@ -241,9 +245,13 @@
     const reportLayout = config.report_layout || {};
     const headerHeight = Number(reportLayout.chart_header_height ?? 20);
     const padding = Number(reportLayout.chart_inner_padding ?? 9);
-    drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    drawSectionHeader(page, x, y + h - headerHeight, w, headerHeight, title, COLORS.dark, fonts, pdflib, "center");
-    fitImage(page, chartImage, x + padding, y + padding, w - 2 * padding, h - headerHeight - padding - 2);
+    const radius = Number(reportLayout.card_radius ?? 3);
+    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
+    const ruleWidth = Number(reportLayout.section_rule_width ?? 0.85);
+    const accentWidth = Number(reportLayout.section_accent_width ?? 26);
+    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
+    drawSectionHeader(page, x + padding, y + h - headerHeight, w - 2 * padding, headerHeight, title, COLORS.dark, fonts, pdflib, "center", ruleWidth, accentWidth);
+    fitImage(page, chartImage, x + padding, y + padding, w - 2 * padding, h - headerHeight - 2 * padding);
   };
 
   const pointStatusText = (record) => {
@@ -254,13 +262,18 @@
   };
 
   const drawPointCard = (page, x, y, w, h, record, config, fonts, pdflib) => {
-    drawRoundRect(page, { x, y, w, h, radius: 5, fill: "#FFFFFF", shadow: true }, pdflib);
-    // Cabeçalho escuro.
-    page.drawRectangle({
-      x, y: y + h - 17, width: w, height: 17,
-      color: rgbColor(COLORS.dark, pdflib),
+    const reportLayout = config.report_layout || {};
+    const radius = Number(reportLayout.card_radius ?? 3);
+    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
+    const pointHeaderHeight = Number(reportLayout.point_header_height ?? 17);
+    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
+    page.drawLine({
+      start: { x: x + 12, y: y + h - pointHeaderHeight },
+      end: { x: x + w - 12, y: y + h - pointHeaderHeight },
+      color: rgbColor(COLORS.line, pdflib),
+      thickness: 0.55,
     });
-    drawText(page, String(record.point_name || "PONTO MONITORADO").toUpperCase(), x + 12, y + h - 12, 9, "#FFFFFF", true, fonts, pdflib);
+    drawText(page, String(record.point_name || "PONTO MONITORADO").toUpperCase(), x + 12, y + h - 12, 8.3, COLORS.dark, true, fonts, pdflib);
 
     const tableX = x + 12;
     const tableY = y + 7;
@@ -307,26 +320,38 @@
       }
     }
     const [label, color] = pointStatusText(record);
-    const reportLayout = config.report_layout || {};
     const btnW = Number(reportLayout.status_badge_width ?? 112);
     const btnH = Number(reportLayout.status_badge_height ?? 20);
     const btnX = x + w - btnW - 12;
-    const btnY = y + 12;
-    const radius = Math.min(Number(reportLayout.status_badge_radius ?? 6), btnH / 2);
-    drawRoundedFill(page, btnX, btnY, btnW, btnH, radius, color, pdflib);
-    const iconX = btnX + 13;
-    const iconY = btnY + btnH / 2;
-    page.drawCircle({ x: iconX, y: iconY, size: 5.2, color: rgbColor("#FFFFFF", pdflib) });
+    const btnY = y + h - btnH - 1;
+    const badgeRadius = Math.min(Number(reportLayout.status_badge_radius ?? 6), btnH / 2);
+    let background = COLORS.status_ausente_bg;
+    let foreground = COLORS.status_ausente_text;
     if (label === "CONFORME ABNT") {
-      page.drawLine({ start: { x: iconX - 2.7, y: iconY }, end: { x: iconX - 0.7, y: iconY - 2 }, color: rgbColor(color, pdflib), thickness: 1.1 });
-      page.drawLine({ start: { x: iconX - 0.7, y: iconY - 2 }, end: { x: iconX + 3, y: iconY + 2.4 }, color: rgbColor(color, pdflib), thickness: 1.1 });
+      background = COLORS.status_conforme_bg;
+      foreground = COLORS.status_conforme_text;
     } else if (label === "VERIFICAR") {
-      page.drawLine({ start: { x: iconX, y: iconY - 2.4 }, end: { x: iconX, y: iconY + 2 }, color: rgbColor(color, pdflib), thickness: 1.1 });
-      page.drawCircle({ x: iconX, y: iconY - 3.4, size: 0.55, borderColor: rgbColor(color, pdflib), borderWidth: 1.1 });
-    } else {
-      page.drawLine({ start: { x: iconX - 2.5, y: iconY }, end: { x: iconX + 2.5, y: iconY }, color: rgbColor(color, pdflib), thickness: 1.1 });
+      background = COLORS.status_verificar_bg;
+      foreground = COLORS.status_verificar_text;
     }
-    drawText(page, label, btnX + 23, btnY + (btnH - 7.5) / 2 + 2, 7.5, "#FFFFFF", true, fonts, pdflib);
+    drawRoundedFill(page, btnX, btnY, btnW, btnH, badgeRadius, background, pdflib);
+    page.drawRectangle({
+      x: btnX, y: btnY, width: btnW, height: btnH,
+      borderColor: rgbColor(foreground, pdflib), borderWidth: 0.45,
+    });
+    const iconX = btnX + 9;
+    const iconY = btnY + btnH / 2;
+    page.drawCircle({ x: iconX, y: iconY, size: 3.3, color: rgbColor(foreground, pdflib) });
+    if (label === "CONFORME ABNT") {
+      page.drawLine({ start: { x: iconX - 1.8, y: iconY }, end: { x: iconX - 0.5, y: iconY - 1.2 }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
+      page.drawLine({ start: { x: iconX - 0.5, y: iconY - 1.2 }, end: { x: iconX + 1.9, y: iconY + 1.5 }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
+    } else if (label === "VERIFICAR") {
+      page.drawLine({ start: { x: iconX, y: iconY - 1.5 }, end: { x: iconX, y: iconY + 1.1 }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
+      page.drawCircle({ x: iconX, y: iconY - 2.1, size: 0.35, color: rgbColor(COLORS.white, pdflib) });
+    } else {
+      page.drawLine({ start: { x: iconX - 1.7, y: iconY }, end: { x: iconX + 1.7, y: iconY }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
+    }
+    drawText(page, label, btnX + 17, btnY + (btnH - 6.6) / 2 + 1.8, 6.6, foreground, true, fonts, pdflib);
   };
 
   const drawFooter = (page, config, fonts, pdflib) => {
@@ -334,21 +359,21 @@
     const footerH = Number(reportLayout.footer_height ?? 30);
     const side = Number(reportLayout.footer_side_padding ?? 28);
     const accentH = Math.min(Number(reportLayout.footer_accent_height ?? 2), footerH / 2);
-    page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: footerH, color: rgbColor(COLORS.navy, pdflib) });
+    page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: footerH, color: rgbColor(COLORS.white, pdflib) });
     page.drawRectangle({
       x: 0, y: footerH - accentH, width: PAGE_W, height: accentH,
       color: rgbColor(COLORS.red, pdflib),
     });
-    drawText(page, `Base normativa: ${config.project?.base_normativa || "ABNT NBR 9653:2018"}`, side, 10.5, 7.5, "#FFFFFF", false, fonts, pdflib);
+    drawText(page, `Base normativa: ${config.project?.base_normativa || "ABNT NBR 9653:2018"}`, side, 10.5, 7.5, COLORS.muted, false, fonts, pdflib);
     page.drawLine({
       start: { x: PAGE_W - 148, y: 8 },
       end: { x: PAGE_W - 148, y: footerH - 8 },
-      color: rgbColor(COLORS.header_band, pdflib),
+      color: rgbColor(COLORS.line, pdflib),
       thickness: 0.6,
     });
     const footerBadge = config.project?.footer_badge || "DNA  •  ENAEX";
     const footerBadgeWidth = fonts.bold.widthOfTextAtSize(sanitizeForWinAnsi(footerBadge), 8.5);
-    drawText(page, footerBadge, PAGE_W - side - footerBadgeWidth, 10.5, 8.5, "#FFFFFF", true, fonts, pdflib);
+    drawText(page, footerBadge, PAGE_W - side - footerBadgeWidth, 10.5, 8.5, COLORS.dark, true, fonts, pdflib);
   };
 
   const firstPageLayout = (config = {}) => {
@@ -401,9 +426,10 @@
     const layout = firstPageLayout(config);
     drawHeader(page, config, records, summary, { logo: logoImage }, fonts, pdflib);
     const margin = layout.pageMargin;
-    drawText(page, config.report_text?.executive_title || "Resumo da Campanha Realizada", margin, 652, 17, COLORS.text, false, fonts, pdflib);
+    const sectionAccentWidth = Number(config.report_layout?.section_accent_width ?? 26);
+    drawText(page, config.report_text?.executive_title || "Resumo da Campanha Realizada", margin, 652, 16, COLORS.text, false, fonts, pdflib);
     page.drawRectangle({
-      x: margin, y: 645, width: 42, height: 2,
+      x: margin, y: 645, width: sectionAccentWidth, height: 1.5,
       color: rgbColor(COLORS.red, pdflib),
     });
     drawScope(page, margin, 566, PAGE_W - 2 * margin, 72, config, records, summary, fonts, pdflib);
@@ -413,9 +439,9 @@
     drawChartCard(page, margin, layout.chartY, chartW, layout.chartH, config.report_text?.pressure_chart_title || "Pressão Sonora x Distância", pressureImg, config, fonts, pdflib);
     drawChartCard(page, margin + chartW + layout.chartColumnGap, layout.chartY, chartW, layout.chartH, config.report_text?.vibration_chart_title || "PPV x Limite ABNT", vibrationImg, config, fonts, pdflib);
 
-    drawText(page, config.report_text?.points_title || "Pontos Monitorados", margin, layout.pointsTitleY, 17, COLORS.text, false, fonts, pdflib);
+    drawText(page, config.report_text?.points_title || "Pontos Monitorados", margin, layout.pointsTitleY, 16, COLORS.text, false, fonts, pdflib);
     page.drawRectangle({
-      x: margin, y: layout.pointsTitleY - 7, width: 42, height: 2,
+      x: margin, y: layout.pointsTitleY - 7, width: sectionAccentWidth, height: 1.5,
       color: rgbColor(COLORS.red, pdflib),
     });
     let y = layout.firstCardY;
@@ -435,7 +461,11 @@
       for (let idx = 0; idx < remaining.length; idx += 8) {
         const batch = remaining.slice(idx, idx + 8);
         const extra = doc.addPage([PAGE_W, PAGE_H]);
-        drawText(extra, config.report_text?.continued_points_title || "Pontos Monitorados - Continuação", margin, PAGE_H - 55, 17, COLORS.text, false, fonts, pdflib);
+        drawText(extra, config.report_text?.continued_points_title || "Pontos Monitorados - Continuação", margin, PAGE_H - 55, 16, COLORS.text, false, fonts, pdflib);
+        extra.drawRectangle({
+          x: margin, y: PAGE_H - 62, width: sectionAccentWidth, height: 1.5,
+          color: rgbColor(COLORS.red, pdflib),
+        });
         let yy = PAGE_H - 120;
         for (const r of batch) {
           drawPointCard(extra, margin, yy, PAGE_W - 2 * margin, cardH, r, config, fonts, pdflib);
