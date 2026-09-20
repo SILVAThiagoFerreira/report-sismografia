@@ -60,24 +60,35 @@
         ` *${r.point_name || "N/D"}*`,
         `   • PVS: ${fmtRecordNum(r, "pvs_mm_s", 3)} mm/s`,
         `   • PSPL: ${fmtRecordNum(r, "pspl_db", 1)} dB(L)`,
+        `   • PPV: Tran ${fmtRecordNum(r, "tran_ppv_mm_s", 3)} | Vert ${fmtRecordNum(r, "vert_ppv_mm_s", 3)} | Long ${fmtRecordNum(r, "long_ppv_mm_s", 3)} mm/s`,
         ""
       );
     }
     if (pointLines.length) pointLines.pop();
 
     const lines = [
-      "*MONITORAMENTO SISMOGRÁFICO — ENAEX*",
+      "*MONITORAMENTO SISMOGRÁFICO - ENAEX*",
+      "---",
+      ` *Cliente:* ${client}`,
+      ` *Data:* ${eventDate}`,
       "",
-      `*Cliente:* ${client}`,
-      `*Data:* ${eventDate}`,
-      "",
+      "Prezados,",
+      "Seguem os níveis de vibração e pressão acústica registrados no evento. Os detalhes técnicos completos podem ser consultados no relatório (imagem) em anexo.",
       vibrationStatus,
       "",
       ...pointLines,
       "",
+      "---",
       statusFinal,
+      "",
+      "_Consulte a imagem anexa para mais detalhes._",
+      "",
+      "Atenciosamente,",
+      "*Enaex*",
     ];
-    return lines.join("\n");
+    // CRLF mantém a nota baixada no navegador byte-a-byte compatível com o
+    // artefato operacional gerado no Windows pelo pipeline Python.
+    return lines.join("\r\n");
   };
 
   window.SismoWhatsapp = { buildWhatsappNote, fmtNum, fmtDate };

@@ -17,7 +17,7 @@
 
   const DPI = 220;
   const DEFAULT_FIGURE_WIDTH_IN = 9.0;
-  const DEFAULT_FIGURE_HEIGHT_IN = 5.0;
+const DEFAULT_FIGURE_HEIGHT_IN = 4.4;
   const DEFAULT_WEB_FIGURE_WIDTH_IN = 6.5;
 
   const canvasDimensions = (config = {}) => {
