@@ -19,6 +19,11 @@ Antes da geração, o usuário informa a unidade de serviço no campo
 preenchido é aplicado ao cabeçalho e ao escopo do relatório somente naquela
 execução.
 
+Para uma demonstração rápida, o botão **Carregar exemplo** preenche a lista com
+três CSVs pequenos e sanitizados publicados em `assets/examples/`. Depois do
+carregamento, o usuário ainda clica em **Gerar relatório**; o exemplo percorre
+exatamente o mesmo parser, validação, avaliação e exportação dos arquivos locais.
+
 ## Paleta ENAEX
 
 A identidade do relatório é centralizada em `js/config.js`, no objeto
@@ -35,7 +40,7 @@ linha no PDF.
 
 Para até três pontos, PDF e PNG formam uma única página A4 com “Resumo da
 Campanha Realizada”, escopo, conclusão, os dois gráficos normativos e os
-cartões dos pontos. Os gráficos usam cards de 162 pt e 28 pt de distância até
+cartões dos pontos. Os gráficos usam cards de 174 pt e 16 pt de distância até
 “Pontos Monitorados”; os status ficam em pills verdes com ícone de check.
 Campanhas com datas de evento
 misturadas ou campos essenciais inválidos são rejeitadas antes da geração.
@@ -61,7 +66,9 @@ branch `main` na pasta `/docs`. Portanto, `pages/` é a fonte de trabalho local;
 antes do push, seu conteúdo deve ser sincronizado com `docs/`.
 
 Não publique CSVs de operação, logs ou pastas `output/`: o gerador processa os
-arquivos escolhidos somente em memória no navegador.
+arquivos escolhidos somente em memória no navegador. A única exceção versionada
+são os três fixtures demonstrativos em `assets/examples/`, que não contêm
+dados operacionais.
 
 ## Estrutura
 
@@ -71,7 +78,8 @@ pages/
 ├── styles.css         — mesmo tema do hub OpenBlast (paleta Enaex)
 ├── assets/            — logos usados na UI e embutidos no PDF
 │   ├── enaex_logo_horizontal.png
-│   └── openblast.png
+│   ├── openblast.png
+│   └── examples/         — três fixtures IDFW sanitizados para demonstração
 └── js/
     ├── config.js      — limites, prefixos, textos (equivalente a config.json)
     ├── parser.js      — port de src/parser.py
@@ -101,7 +109,7 @@ Testado com os três CSVs de referência do projeto:
 - **Layout do PDF**: a primeira página concentra resumo, gráficos e pontos
   monitorados para campanhas de até três pontos. O pdf-lib usa a mesma origem
   A4 do reportlab (canto inferior esquerdo, 1 pt = 1/72").
-- **Gráficos**: canvas 1430×699, mesma paleta e curva NBR com quebra de eixo Y
+- **Gráficos**: canvas 1430×763, mesma paleta e curva NBR com quebra de eixo Y
   quando aplicável. A proporção é derivada de `figure_width`/`figure_height`
   em `js/config.js`; a área dos eixos preserva a composição A4 da referência.
 

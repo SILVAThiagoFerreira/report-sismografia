@@ -18,6 +18,14 @@ window.SISMO_CONFIG = {
     pressure_chart: "{file_prefix}-{date}_pressao_sonora_nbr.png",
     vibration_chart: "{file_prefix}-{date}_vibracao_nbr_eixos_zero.png",
   },
+  examples: {
+    label: "Carregar exemplo",
+    files: [
+      "assets/examples/EXEMPLO_BARRAGEM_DE_REJEITOS.IDFW.CSV",
+      "assets/examples/EXEMPLO_COMUNIDADE_DE_LAGOA_DO_MEL.IDFW.CSV",
+      "assets/examples/EXEMPLO_COMUNIDADE_DE_TORROES.IDFW.CSV",
+    ],
+  },
   limits: {
     sound_pressure_db: 134.0,
     vibration_status_mm_s: 0.8,
@@ -31,7 +39,7 @@ window.SISMO_CONFIG = {
   },
   charts: {
     figure_width: 9.0,
-    figure_height: 4.4,
+    figure_height: 4.8,
     web_figure_width: 6.5,
     figure_dpi: 220,
     title_font_size: 11.0,
@@ -56,7 +64,7 @@ window.SISMO_CONFIG = {
     chart_column_gap: 14.0,
     chart_inner_padding: 6.0,
     chart_header_height: 22.0,
-    chart_to_points_gap: 28.0,
+    chart_to_points_gap: 16.0,
     charts_top_limit: 484.0,
     footer_height: 30.0,
     footer_accent_height: 2.0,

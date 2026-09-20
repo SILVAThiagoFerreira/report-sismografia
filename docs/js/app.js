@@ -5,6 +5,7 @@
   const dropzone = document.getElementById("dropzone");
   const fileInput = document.getElementById("file-input");
   const pickBtn = document.getElementById("pick-btn");
+  const exampleBtn = document.getElementById("example-btn");
   const listEl = document.getElementById("file-list");
   const generateBtn = document.getElementById("generate-btn");
   const clearBtn = document.getElementById("clear-btn");
@@ -72,6 +73,11 @@
     renderList();
   };
 
+  const clearGeneratedResults = () => {
+    resultsSection.hidden = true;
+    revokeLastUrls();
+  };
+
   // ---- Interações ----
 
   pickBtn.addEventListener("click", (e) => {
@@ -86,6 +92,7 @@
     }
   });
   fileInput.addEventListener("change", () => {
+    clearGeneratedResults();
     addFiles(fileInput.files);
     fileInput.value = "";
   });
@@ -104,7 +111,10 @@
   );
   dropzone.addEventListener("drop", (e) => {
     const dt = e.dataTransfer;
-    if (dt && dt.files) addFiles(dt.files);
+    if (dt && dt.files) {
+      clearGeneratedResults();
+      addFiles(dt.files);
+    }
   });
 
   listEl.addEventListener("click", (e) => {
@@ -118,8 +128,7 @@
   clearBtn.addEventListener("click", () => {
     selected = [];
     renderList();
-    resultsSection.hidden = true;
-    revokeLastUrls();
+    clearGeneratedResults();
     setStatus("");
   });
 
@@ -137,6 +146,41 @@
       r.onerror = () => reject(new Error(`Falha ao ler ${file.name}`));
       r.readAsText(file, "utf-8");
     });
+
+  const loadExample = async () => {
+    const exampleConfig = window.SISMO_CONFIG?.examples || {};
+    const paths = Array.isArray(exampleConfig.files) ? exampleConfig.files : [];
+    if (paths.length === 0) throw new Error("Nenhum arquivo de exemplo foi configurado.");
+
+    const files = await Promise.all(paths.map(async (path) => {
+      const response = await fetch(path, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Não foi possível carregar o exemplo (${response.status}).`);
+      const blob = await response.blob();
+      const name = String(path).split("/").pop() || "exemplo.IDFW.CSV";
+      return new File([blob], name, { type: "text/csv" });
+    }));
+
+    selected = files;
+    clearGeneratedResults();
+    renderList();
+    setStatus("Exemplo carregado. Clique em Gerar relatório para continuar.", "ok");
+  };
+
+  if (exampleBtn) {
+    exampleBtn.textContent = window.SISMO_CONFIG?.examples?.label || "Carregar exemplo";
+    exampleBtn.addEventListener("click", async () => {
+      exampleBtn.disabled = true;
+      setStatus("Carregando arquivos de exemplo…");
+      try {
+        await loadExample();
+      } catch (err) {
+        console.error(err);
+        setStatus(`Erro: ${err.message}`, "error");
+      } finally {
+        exampleBtn.disabled = false;
+      }
+    });
+  }
 
   const outputName = (template, ctx) =>
     template.replace(/\{(\w+)\}/g, (_, k) => ctx[k] ?? "");
@@ -344,6 +388,7 @@
   generateBtn.addEventListener("click", async () => {
     if (selected.length === 0) return;
     generateBtn.disabled = true;
+    if (exampleBtn) exampleBtn.disabled = true;
     generateBtn.classList.add("is-loading");
     setStatus("");
     try {
@@ -355,6 +400,7 @@
       setStatus(`Erro: ${err.message}`, "error");
     } finally {
       generateBtn.disabled = selected.length === 0;
+      if (exampleBtn) exampleBtn.disabled = false;
       generateBtn.classList.remove("is-loading");
     }
   });
