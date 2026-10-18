@@ -290,8 +290,8 @@
     const margin = layout.pageMargin;
     const contentW = PAGE_W - 2 * margin;
     drawSectionHeader(page, margin, 650, contentW, 20, config.report_text?.executive_title || "Resumo da Campanha Realizada", fonts, pdflib, ruleWidth);
-    drawScope(page, margin, 566, contentW, 72, config, records, summary, fonts, pdflib);
-    drawConclusion(page, margin, 488, contentW, 72, records, summary, config, fonts, pdflib);
+    drawScope(page, margin, 566, contentW, 58, config, records, summary, fonts, pdflib);
+    drawConclusion(page, margin, 494, contentW, 72, records, summary, config, fonts, pdflib);
 
     const chartW = (contentW - layout.chartColumnGap) / 2;
     drawChartCard(page, margin, layout.chartY, chartW, layout.chartH, config.report_text?.pressure_chart_title || "Pressão Sonora x Distância", pressureImg, config, fonts, pdflib);

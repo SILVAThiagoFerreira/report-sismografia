@@ -9,7 +9,7 @@
     red: "#B5121B",
     green: "#67C70A",
     gray: "#8A8F96",
-    guide: "#E3B5B8",
+    guide: "#C4C7CB",
   };
 
   const DPI = 220;
@@ -523,7 +523,7 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     const curve = limits.nbr9653_curve || [
       [0, 15], [4, 15], [15, 20], [40, 50], [1000, 50],
     ];
-    const yTickStep = Number(chartCfg.vibration_y_tick_step ?? 0.1);
+    const yTickStep = Number(chartCfg.vibration_y_tick_step ?? 0.2);
     const useBrokenY = chartCfg.vibration_use_broken_y !== false;
     const focusYMax = Number(chartCfg.vibration_y_focus_max ?? 1.0);
 
