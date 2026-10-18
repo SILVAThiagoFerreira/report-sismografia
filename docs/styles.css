@@ -597,3 +597,11 @@ a { color: inherit; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Faixa de identidade obrigatória: Enaex / US Vale Verde */
+.enaex-band{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;min-height:50px;padding:0 35px 0 45px;background:#3a434b;border-bottom:3px solid #E20613;color:#fff}
+.enaex-band__brand{display:block;justify-self:start}.enaex-band__brand img{display:block;width:90px;height:auto}
+.enaex-band__title{margin:0;justify-self:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 20px/1.2 Arial,sans-serif;color:#fff}
+.enaex-band__site{justify-self:end;white-space:nowrap;font:500 11px/1.4 Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#c4c7cb}
+@media (max-width:640px){.enaex-band{grid-template-columns:auto 1fr;padding:0 16px}.enaex-band__brand img{width:64px}.enaex-band__title{justify-self:end;font-size:14px}.enaex-band__site{display:none}}
+@media print{.enaex-band{display:none!important}}
