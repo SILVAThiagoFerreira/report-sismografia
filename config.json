@@ -1,157 +1,25 @@
 {
-  "project": {
-    "title": "MONITORAMENTO SISMOGRÁFICO",
-    "client_default": "US MINERAÇÃO VALE-VERDE",
-    "base_normativa": "ABNT NBR 9653:2018",
-    "footer_badge": "DNA  •  ENAEX",
-    "client_override": "US MINERAÇÃO VALE-VERDE"
+  "system": {
+    "name": "Report Sismografia OpenBlast",
+    "version": "1.0.0"
   },
   "paths": {
     "input_dir": "input",
-    "output_root": "output",
-    "logs_root": "logs"
+    "output_dir": "output",
+    "logs_dir": "logs",
+    "legacy_input_dir": "INPUTS",
+    "legacy_output_dir": "OUTPUTS",
+    "logo_path": "ICONE/openblast-logo.png"
   },
-  "output": {
-    "folder_prefix": "monitoramento_sismografico",
-    "file_prefix": "ENAEX_NSR",
-    "run_folder_template": "{date}_{time}_{folder_prefix}"
-  },
-  "logging": {
-    "level": "INFO",
-    "file_template": "{file_prefix}-{date}_{time}.log"
-  },
-  "artifacts": {
-    "report_pdf": "{file_prefix}-{date}.pdf",
-    "report_png": "{file_prefix}-{date}.png",
-    "whatsapp_note": "{file_prefix}-{date}_nota_whatsapp.txt",
-    "data_json": "{file_prefix}-{date}_dados_extraidos.json",
-    "manifest_json": "{file_prefix}-{date}_manifest.json",
-    "pressure_chart": "{file_prefix}-{date}_pressao_sonora_nbr.png",
-    "vibration_chart": "{file_prefix}-{date}_vibracao_nbr_eixos_zero.png"
-  },
-  "examples": {
-    "label": "Carregar exemplo",
-    "files": [
-      "assets/examples/EXEMPLO_BARRAGEM_DE_REJEITOS.IDFW.CSV",
-      "assets/examples/EXEMPLO_COMUNIDADE_DE_LAGOA_DO_MEL.IDFW.CSV",
-      "assets/examples/EXEMPLO_COMUNIDADE_DE_TORROES.IDFW.CSV"
-    ]
-  },
-  "limits": {
-    "sound_pressure_db": 134,
-    "vibration_status_mm_s": 0.8,
-    "vibration_compliance_mode": "nbr9653_curve",
-    "nbr9653_curve": [
-      [
-        0,
-        15
-      ],
-      [
-        4,
-        15
-      ],
-      [
-        15,
-        20
-      ],
-      [
-        40,
-        50
-      ],
-      [
-        1000,
-        50
-      ]
-    ]
-  },
-  "charts": {
-    "figure_width": 9,
-    "figure_height": 4.8,
-    "web_figure_width": 6.5,
-    "figure_dpi": 220,
-    "title_font_size": 11,
-    "axis_label_font_size": 9,
-    "tick_font_size": 8,
-    "legend_font_size": 8,
-    "annotation_font_size": 8,
-    "marker_size": 48,
-    "vibration_x_min": 0,
-    "vibration_y_min": 0,
-    "vibration_y_tick_step": 0.2,
-    "vibration_use_broken_y": true,
-    "vibration_y_focus_max": 1,
-    "vibration_x_max_minimum": 60,
-    "vibration_y_max_minimum": 60,
-    "pressure_x_min": 0,
-    "pressure_y_min": 0,
-    "pressure_y_max": 160
-  },
-  "report_layout": {
-    "page_margin": 28,
-    "chart_column_gap": 14,
-    "chart_inner_padding": 6,
-    "card_radius": 3,
-    "card_border_width": 0.55,
-    "section_header_height": 20,
-    "section_rule_width": 0.85,
-    "section_accent_width": 26,
-    "chart_header_height": 20,
-    "point_header_height": 17,
-    "chart_to_points_gap": 16,
-    "charts_top_limit": 484,
-    "footer_height": 30,
-    "footer_accent_height": 1.5,
-    "footer_side_padding": 28,
-    "header_points_arrow_offset": 12,
-    "header_points_arrow_width": 14,
-    "header_points_arrow_gap": 8,
-    "header_points_arrow_line_width": 1.5,
-    "status_badge_width": 100,
-    "status_badge_height": 16,
-    "status_badge_radius": 3
-  },
-  "report_text": {
-    "executive_title": "Resumo da Campanha Realizada",
-    "scope_title": "Escopo da Campanha",
-    "conclusion_title": "Conclusão Técnica",
-    "points_title": "Pontos Monitorados",
-    "continued_points_title": "Pontos Monitorados - Continuação",
-    "pressure_chart_title": "Pressão Sonora x Distância",
-    "vibration_chart_title": "PPV x Limite ABNT"
-  },
-  "processing": {
-    "require_single_event_date": true,
-    "allow_missing_optional_fields": true,
-    "record_order": "source_order"
-  },
-  "branding": {
-    "logo_path": "assets/enaex_logo_horizontal.png",
-    "palette": {
-      "enaex_gray": "#3D4148",
-      "enaex_red": "#B5121B",
-      "white": "#FFFFFF",
-      "gray_50": "#F7F7F8",
-      "gray_100": "#EFEFF0",
-      "gray_200": "#E3E3E3",
-      "gray_300": "#C4C7CB",
-      "text": "#3D4148",
-      "muted": "#4A4F55",
-      "axis_gray": "#8A8F96",
-      "guide": "#C4C7CB",
-      "series_transversal": "#B5121B",
-      "series_longitudinal": "#3D4148",
-      "series_vertical": "#8A8F96",
-      "status_conforme": "#67C70A",
-      "status_ausente": "#9AA1AC",
-      "status_conforme_bg": "#EAF7D5",
-      "status_conforme_text": "#3F7600",
-      "status_verificar_bg": "#FDE8E7",
-      "status_verificar_text": "#A4232B",
-      "status_ausente_bg": "#F2F3F5",
-      "status_ausente_text": "#667085"
-    }
+  "execution": {
+    "watch_interval_seconds": 5,
+    "file_glob": "*.pdf",
+    "default_command": "generate"
   },
   "report": {
-    "show_vibration_index": true
+    "summary_record_limit": 3,
+    "png_scale": 6.0,
+    "png_page_number": 0,
+    "vibration_alert_threshold_mm_s": 0.8
   }
 }

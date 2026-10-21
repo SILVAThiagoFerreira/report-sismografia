@@ -27,11 +27,11 @@ exatamente o mesmo parser, validação, avaliação e exportação dos arquivos 
 ## Paleta ENAEX
 
 A identidade do relatório é centralizada em `js/config.js`, no objeto
-`branding.palette` (mesmos valores de `config.json`): fundo branco, vermelho
-Enaex `#B5121B` apenas no título, grafite `#3D4148` para textos e séries,
-cinza `#8A8F96` para eixos e rótulos de seção e rosa `#E3B5B8` para as guias da
-curva. O relatório não usa cartões, molduras nem sombras: os blocos são
-separados por fios finos, e a conformidade aparece como texto colorido.
+`branding.palette`: branco como superfície principal, Cinza Enaex `#38424B`
+para títulos, Vermelho Enaex `#E20613` nos acentos e variações de branco/cinza
+nos fundos e rótulos. A série longitudinal usa Cinza Enaex, a série vertical
+mantém o verde `#16A34A` e o verde `#67C70A` fica reservado à conformidade
+positiva; cards e rodapé são claros, com regras finas e sem sombras pesadas.
 
 O formulário também permite informar o target executivo de vibração em mm/s
 (inicialmente `0,8`) e escolher se a linha “Índices de vibração” será exibida

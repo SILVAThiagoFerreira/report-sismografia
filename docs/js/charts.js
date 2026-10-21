@@ -3,13 +3,16 @@
 // permanece configurável em charts.web_figure_width para preservar a escala
 // tipográfica e a nitidez do card no PDF.
 (() => {
-  // Paleta do relatório (mesmos valores de config.json > branding.palette).
   const COLORS = {
-    dark: "#3D4148",
-    red: "#B5121B",
+    dark: "#2F3440",
+    red: "#E30613",
     green: "#67C70A",
-    gray: "#8A8F96",
-    guide: "#C4C7CB",
+    blue: "#2D7DBF",
+    gray: "#6B7280",
+    grid: "#B7BDC7",
+    gridMinor: "#D7DCE5",
+    boxEdge: "#CBD5E1",
+    arrow: "#94A3B8",
   };
 
   const DPI = 220;
@@ -46,7 +49,7 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
   // porque a área útil ficou menor.
   const AX_MARGIN = {
     left: 0.09,
-    right: 0.965, // legenda fica abaixo do gráfico
+    right: 0.79, // deixa espaço para a legenda externa
     top: 0.86,
     bottom: 0.18,
   };
@@ -117,13 +120,32 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     const xTicks = opts.xTicks || niceTicks(xLim[0], xLim[1], 8);
     const yTicks = opts.yTicks || niceTicks(yLim[0], yLim[1], 8);
 
-    // Sem grade e sem moldura: apenas uma linha de base fina.
     ctx.save();
-    ctx.strokeStyle = COLORS.gray;
+    ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth = 0.77; // ~= 0.35pt @ 220 DPI
+    ctx.globalAlpha = 0.9;
+    for (const x of xTicks) {
+      const px = ax.xToPx(x);
+      ctx.beginPath();
+      ctx.moveTo(px, box.y);
+      ctx.lineTo(px, box.y + box.h);
+      ctx.stroke();
+    }
+    for (const y of yTicks) {
+      const py = ax.yToPx(y);
+      ctx.beginPath();
+      ctx.moveTo(box.x, py);
+      ctx.lineTo(box.x + box.w, py);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Rótulos e ticks nos eixos.
+    ctx.save();
+    ctx.strokeStyle = COLORS.dark;
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(box.x, box.y + box.h);
-    ctx.lineTo(box.x + box.w, box.y + box.h);
+    ctx.rect(box.x, box.y, box.w, box.h);
     ctx.stroke();
     ctx.restore();
 
@@ -145,8 +167,23 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     }
   };
 
-  // Sem grade menor no estilo do relatório.
-  const drawMinorGrid = () => {};
+  const drawMinorGrid = (ax, yStep) => {
+    if (!yStep) return;
+    const { ctx, box, yLim } = ax;
+    ctx.save();
+    ctx.strokeStyle = COLORS.gridMinor;
+    ctx.lineWidth = 0.44;
+    ctx.globalAlpha = 0.35;
+    const start = Math.ceil(yLim[0] / yStep) * yStep;
+    for (let y = start; y <= yLim[1] + 1e-9; y += yStep) {
+      const py = ax.yToPx(y);
+      ctx.beginPath();
+      ctx.moveTo(box.x, py);
+      ctx.lineTo(box.x + box.w, py);
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
 
   const niceTicks = (min, max, target = 8) => {
     if (min === max) return [min];
@@ -176,6 +213,15 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
       .replace(/0+$/, "")
       .replace(/\.$/, "")
       .replace(".", ",");
+  };
+
+  const drawTitle = (ctx, text, x, y) => {
+    fillText(ctx, text, x, y, {
+      size: 18,
+      bold: true,
+      color: COLORS.dark,
+      align: "center",
+    });
   };
 
   const drawAxisLabels = (ctx, box, xLabel, yLabel) => {
@@ -258,10 +304,10 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
   const drawGuideLine = (ax, x0, y0, x1, y1) => {
     const { ctx } = ax;
     ctx.save();
-    ctx.strokeStyle = COLORS.guide;
-    ctx.lineWidth = 1.4;
-    ctx.setLineDash([6, 6]);
-    ctx.globalAlpha = 1;
+    ctx.strokeStyle = COLORS.red;
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([10, 8]);
+    ctx.globalAlpha = 0.85;
     ctx.beginPath();
     ctx.moveTo(ax.xToPx(x0), ax.yToPx(y0));
     ctx.lineTo(ax.xToPx(x1), ax.yToPx(y1));
@@ -364,8 +410,27 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
       const anchorX = ax.xToPx(x) + dx * pxPerPt;
       const anchorY = ax.yToPx(y) - dy * pxPerPt;
 
-      // Texto direto no ponto, sem caixa nem seta.
+      // Caixa branca com borda cinza clara.
       const { ctx } = ax;
+      ctx.save();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.strokeStyle = COLORS.boxEdge;
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, bbox.x0, bbox.y0, bbox.x1 - bbox.x0, bbox.y1 - bbox.y0, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Linha do ponto até a caixa.
+      ctx.strokeStyle = COLORS.arrow;
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.moveTo(ax.xToPx(x), ax.yToPx(y));
+      const cx = (bbox.x0 + bbox.x1) / 2;
+      const cy = (bbox.y0 + bbox.y1) / 2;
+      ctx.lineTo(cx, cy);
+      ctx.stroke();
+      ctx.restore();
+
       // Texto (multiline centralizado).
       const lines = text.split("\n");
       const lineH = fontsize * 1.18;
@@ -374,7 +439,7 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
       for (const line of lines) {
         fillText(ctx, line, tx, ty, {
           size: fontsize,
-          color: COLORS.dark,
+          color: COLORS.gray,
           align: "center",
         });
         ty += lineH;
@@ -392,52 +457,47 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     ctx.closePath();
   };
 
-  // Legenda horizontal centralizada abaixo do gráfico.
-  const drawLegend = (ctx, entries, centerX, y) => {
+  const drawLegend = (ctx, entries, x, y) => {
     const size = 13;
-    const gap = 26;
-    const iconW = 26;
     ctx.save();
-    ctx.font = `400 ${size}px "IBM Plex Sans", "Segoe UI", Arial, sans-serif`;
-    const widths = entries.map((e) => iconW + 8 + ctx.measureText(e.label).width);
-    const total = widths.reduce((acc, w) => acc + w, 0) + gap * (entries.length - 1);
-    let x = centerX - total / 2;
-    entries.forEach(({ label, color, marker, isLine }, idx) => {
-      const cy = y - size / 2 + 2;
-      const cx = x + iconW / 2;
+    let ty = y;
+    for (const { label, color, marker, isLine } of entries) {
+      // ícone
+      const cx = x + 12;
+      const cy = ty - size / 2 + 2;
       ctx.fillStyle = color;
       ctx.strokeStyle = color;
       if (isLine) {
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.moveTo(x, cy);
-        ctx.lineTo(x + iconW, cy);
+        ctx.lineTo(x + 24, cy);
         ctx.stroke();
       } else if (marker === "s") {
-        ctx.fillRect(cx - 5, cy - 5, 10, 10);
+        ctx.fillRect(cx - 6, cy - 6, 12, 12);
       } else if (marker === "D") {
         ctx.beginPath();
-        ctx.moveTo(cx, cy - 6);
-        ctx.lineTo(cx + 6, cy);
-        ctx.lineTo(cx, cy + 6);
-        ctx.lineTo(cx - 6, cy);
+        ctx.moveTo(cx, cy - 7);
+        ctx.lineTo(cx + 7, cy);
+        ctx.lineTo(cx, cy + 7);
+        ctx.lineTo(cx - 7, cy);
         ctx.closePath();
         ctx.fill();
       } else if (marker === "^") {
         ctx.beginPath();
-        ctx.moveTo(cx, cy - 6);
-        ctx.lineTo(cx + 6, cy + 6);
-        ctx.lineTo(cx - 6, cy + 6);
+        ctx.moveTo(cx, cy - 7);
+        ctx.lineTo(cx + 7, cy + 7);
+        ctx.lineTo(cx - 7, cy + 7);
         ctx.closePath();
         ctx.fill();
       } else {
         ctx.beginPath();
-        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
         ctx.fill();
       }
-      fillText(ctx, label, x + iconW + 8, y, { size, color: COLORS.dark });
-      x += widths[idx] + gap;
-    });
+      fillText(ctx, label, x + 32, ty, { size, color: COLORS.dark });
+      ty += size + 8;
+    }
     ctx.restore();
   };
 
@@ -472,6 +532,13 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
       h: canvasH * (AX_MARGIN.top - AX_MARGIN.bottom),
     };
     const ax = new Axes(ctx, box, [xMin, xMax], [yMin, yMax]);
+
+    drawTitle(
+      ctx,
+      "Pressão Sonora em Eventos Sismográficos - ABNT NBR 9653:2018",
+      box.x + box.w / 2,
+      box.y - 20
+    );
     drawGrid(ax);
     drawAxisLabels(ctx, box, "Distância (m)", "Pressão Acústica (dB)");
     drawLimitLine(ax, limit);
@@ -494,8 +561,8 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
         { label: `Limite de ${limit} dB`, color: COLORS.dark, isLine: true },
         { label: "Pressão Sonora (dB)", color: COLORS.red, marker: "o" },
       ],
-      box.x + box.w / 2,
-      box.y + box.h + 112
+      box.x + box.w + 20,
+      box.y + box.h / 2 - 20
     );
 
     return canvas;
@@ -523,14 +590,14 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     const curve = limits.nbr9653_curve || [
       [0, 15], [4, 15], [15, 20], [40, 50], [1000, 50],
     ];
-    const yTickStep = Number(chartCfg.vibration_y_tick_step ?? 0.2);
+    const yTickStep = Number(chartCfg.vibration_y_tick_step ?? 0.1);
     const useBrokenY = chartCfg.vibration_use_broken_y !== false;
     const focusYMax = Number(chartCfg.vibration_y_focus_max ?? 1.0);
 
     const axesDefs = [
       { label: "Transversal", ppvKey: "tran_ppv_mm_s", freqKey: "tran_freq_hz", marker: "s", color: COLORS.red },
-      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: COLORS.dark },
-      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: COLORS.gray },
+      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: "#1D4ED8" },
+      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: "#16A34A" },
     ];
 
     const freqs = [];
@@ -603,6 +670,15 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
         [yMinFocus, yMax]
       );
     }
+
+    // Título (uma vez, acima do axTop se broken).
+    const titleY = (axTop || axBottom).box.y - 20;
+    drawTitle(
+      ctx,
+      "Vibração em Eventos Sismográficos - ABNT NBR 9653:2018",
+      (axTop || axBottom).box.x + (axTop || axBottom).box.w / 2,
+      titleY
+    );
 
     // Grid + curva NBR no top.
     if (axTop) {
@@ -712,8 +788,8 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     drawLegend(
       ctx,
       legendEntries,
-      outerLeft + outerW / 2,
-      axBottom.box.y + axBottom.box.h + 112
+      outerRight + 20,
+      (axTop || axBottom).box.y + ((axTop ? axTop.box.h : axBottom.box.h) / 2) - 40
     );
 
     return canvas;
