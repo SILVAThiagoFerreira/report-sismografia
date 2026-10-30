@@ -23,3 +23,5 @@ devem continuar usando o verde de status.
 2. Fazer upload dos CSVs.
 3. Conferir os dados.
 4. Baixar os artefatos gerados.
+
+A renderização dos gráficos reserva área para a legenda inferior e mantém os segmentos da curva normativa e os marcadores das medições no PDF e PNG gerados no navegador.

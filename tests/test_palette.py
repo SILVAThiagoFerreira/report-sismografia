@@ -14,7 +14,8 @@ def test_web_report_palette_replaces_blue_longitudinal_series():
     assert 'series_longitudinal: "#38424B"' in config
     assert 'series_vertical: "#16A34A"' in config
     assert 'status_conforme: "#67C70A"' in config
-    assert "COLORS.longitudinal" in charts
+    assert "palette?.series_longitudinal" in charts
+    assert "palette?.series_vertical" in charts
     assert "#1D4ED8" not in charts
     assert "#2D7DBF" not in charts
     assert "COLORS.dark" in report

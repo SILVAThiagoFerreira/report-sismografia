@@ -7,7 +7,6 @@
     dark: "#2F3440",
     red: "#E30613",
     green: "#67C70A",
-    blue: "#2D7DBF",
     gray: "#6B7280",
     grid: "#B7BDC7",
     gridMinor: "#D7DCE5",
@@ -48,10 +47,10 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
   // Layout dos "axes" dentro da figura (fração da figura). Compactamos as margens
   // porque a área útil ficou menor.
   const AX_MARGIN = {
-    left: 0.09,
-    right: 0.79, // deixa espaço para a legenda externa
-    top: 0.86,
-    bottom: 0.18,
+    left: 0.10,
+    right: 0.96, // legenda centralizada abaixo
+    top: 0.92,
+    bottom: 0.20,
   };
 
   // ------- helpers gerais -------
@@ -149,10 +148,10 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     ctx.stroke();
     ctx.restore();
 
-    for (const x of xTicks) {
+    for (const x of (opts.hideXLabels ? [] : xTicks)) {
       const px = ax.xToPx(x);
       fillText(ctx, formatTickNumber(x), px, box.y + box.h + 22, {
-        size: 13,
+        size: 21,
         color: COLORS.dark,
         align: "center",
       });
@@ -160,7 +159,7 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     for (const y of yTicks) {
       const py = ax.yToPx(y);
       fillText(ctx, formatTickNumber(y), box.x - 10, py + 5, {
-        size: 13,
+        size: 21,
         color: COLORS.dark,
         align: "right",
       });
@@ -226,12 +225,12 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
 
   const drawAxisLabels = (ctx, box, xLabel, yLabel) => {
     fillText(ctx, xLabel, box.x + box.w / 2, box.y + box.h + 60, {
-      size: 15,
+      size: 24,
       color: COLORS.dark,
       align: "center",
     });
-    fillText(ctx, yLabel, box.x - 55, box.y + box.h / 2, {
-      size: 15,
+    fillText(ctx, yLabel, box.x - 75, box.y + box.h / 2, {
+      size: 24,
       color: COLORS.dark,
       align: "center",
       rotate: -Math.PI / 2,
@@ -457,47 +456,34 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     ctx.closePath();
   };
 
-  const drawLegend = (ctx, entries, x, y) => {
-    const size = 13;
+  const drawLegend = (ctx, entries, centerX, y) => {
+    const size = 20;
+    const gap = 20;
+    const iconW = 26;
     ctx.save();
-    let ty = y;
-    for (const { label, color, marker, isLine } of entries) {
-      // ícone
-      const cx = x + 12;
-      const cy = ty - size / 2 + 2;
+    ctx.font = `400 ${size}px "IBM Plex Sans", "Segoe UI", Arial, sans-serif`;
+    const widths = entries.map(e => iconW + 8 + ctx.measureText(e.label).width);
+    let x = centerX - (widths.reduce((a, b) => a + b, 0) + gap * (entries.length - 1)) / 2;
+    entries.forEach(({ label, color, marker, isLine }, i) => {
+      const cx = x + iconW / 2, cy = y - size / 2 + 2;
       ctx.fillStyle = color;
       ctx.strokeStyle = color;
+      ctx.beginPath();
       if (isLine) {
         ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(x, cy);
-        ctx.lineTo(x + 24, cy);
-        ctx.stroke();
+        ctx.moveTo(x, cy); ctx.lineTo(x + iconW, cy); ctx.stroke();
       } else if (marker === "s") {
-        ctx.fillRect(cx - 6, cy - 6, 12, 12);
+        ctx.rect(cx - 6, cy - 6, 12, 12); ctx.fill();
       } else if (marker === "D") {
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - 7);
-        ctx.lineTo(cx + 7, cy);
-        ctx.lineTo(cx, cy + 7);
-        ctx.lineTo(cx - 7, cy);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(cx, cy - 7); ctx.lineTo(cx + 7, cy); ctx.lineTo(cx, cy + 7); ctx.lineTo(cx - 7, cy); ctx.closePath(); ctx.fill();
       } else if (marker === "^") {
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - 7);
-        ctx.lineTo(cx + 7, cy + 7);
-        ctx.lineTo(cx - 7, cy + 7);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(cx, cy - 7); ctx.lineTo(cx + 7, cy + 7); ctx.lineTo(cx - 7, cy + 7); ctx.closePath(); ctx.fill();
       } else {
-        ctx.beginPath();
-        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
       }
-      fillText(ctx, label, x + 32, ty, { size, color: COLORS.dark });
-      ty += size + 8;
-    }
+      fillText(ctx, label, x + iconW + 8, y, { size, color: COLORS.dark });
+      x += widths[i] + gap;
+    });
     ctx.restore();
   };
 
@@ -553,7 +539,7 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
       y: r.pspl_db,
       text: `${safeName(r.point_name || "Ponto")}\n${r.pspl_db.toFixed(1).replace(".", ",")}`,
     }));
-    annotatePoints(ax, items, 13);
+    annotatePoints(ax, items, 20);
 
     drawLegend(
       ctx,
@@ -561,8 +547,8 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
         { label: `Limite de ${limit} dB`, color: COLORS.dark, isLine: true },
         { label: "Pressão Sonora (dB)", color: COLORS.red, marker: "o" },
       ],
-      box.x + box.w + 20,
-      box.y + box.h / 2 - 20
+      box.x + box.w / 2,
+      box.y + box.h + 112
     );
 
     return canvas;
@@ -596,8 +582,8 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
 
     const axesDefs = [
       { label: "Transversal", ppvKey: "tran_ppv_mm_s", freqKey: "tran_freq_hz", marker: "s", color: COLORS.red },
-      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: "#1D4ED8" },
-      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: "#16A34A" },
+      { label: "Longitudinal", ppvKey: "long_ppv_mm_s", freqKey: "long_freq_hz", marker: "D", color: config.branding?.palette?.series_longitudinal ?? COLORS.dark },
+      { label: "Vertical", ppvKey: "vert_ppv_mm_s", freqKey: "vert_freq_hz", marker: "^", color: config.branding?.palette?.series_vertical ?? "#16A34A" },
     ];
 
     const freqs = [];
@@ -682,7 +668,7 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
 
     // Grid + curva NBR no top.
     if (axTop) {
-      drawGrid(axTop, { yTicks: niceTicks(axTop.yLim[0], axTop.yLim[1], 5) });
+      drawGrid(axTop, { yTicks: niceTicks(axTop.yLim[0], axTop.yLim[1], 4), hideXLabels: true });
       drawCurve(axTop, curvePts, COLORS.dark, 3.5);
       // Guias vermelhas dos pontos internos da curva no top.
       for (const [x, y] of curvePts.slice(1, -1)) {
@@ -775,7 +761,7 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
       if (f == null || p == null) continue;
       items.push({ x: f, y: p, text: safeName(r.point_name || "Ponto") });
     }
-    annotatePoints(axBottom, items, 13);
+    annotatePoints(axBottom, items, 20);
 
     // Labels dos eixos (só no axBottom).
     drawAxisLabels(ctx, axBottom.box, "Frequência (Hz)", "PPV (mm/s)");
@@ -788,8 +774,8 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
     drawLegend(
       ctx,
       legendEntries,
-      outerRight + 20,
-      (axTop || axBottom).box.y + ((axTop ? axTop.box.h : axBottom.box.h) / 2) - 40
+      outerLeft + outerW / 2,
+      axBottom.box.y + axBottom.box.h + 112
     );
 
     return canvas;

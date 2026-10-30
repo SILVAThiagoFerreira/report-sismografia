@@ -46,3 +46,7 @@ Receber arquivos CSV de sismografia, validar os registros e gerar um relatório 
 - O processamento local no navegador evita dependência de IA e de backend.
 - A identidade visual é resolvida em `branding.palette` dentro de `docs/js/config.js`.
 - A série longitudinal usa Cinza Enaex `#38424B`, a série transversal usa Vermelho Enaex `#E20613`, a série vertical mantém o verde `#16A34A` e o verde `#67C70A` é reservado aos estados de conformidade; azul não faz parte do template.
+
+## Visualização dos gráficos
+
+Os gráficos aproveitam a altura e a largura disponíveis, com legendas abaixo e textos ampliados. A curva ABNT é desenhada por segmentos lineares nos vértices configurados; as medições independentes permanecem como pontos, sem interpolação entre locais. A quebra do eixo vertical mantém uma única escala horizontal.

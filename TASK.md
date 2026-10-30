@@ -16,3 +16,7 @@ Migrar o report sismográfico para um fluxo 100% web, baseado em CSV, hospedado 
 - O upload de CSV gera pré-visualização e artefatos baixáveis.
 - Os testes locais passam.
 - O repositório remoto existe e contém o código atualizado.
+
+## Refinamento dos gráficos
+
+Ampliar a área útil dos gráficos e a legibilidade de eixos, anotações e legendas, preservando os trechos normativos e a independência das medições.

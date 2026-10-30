@@ -51,3 +51,5 @@ O fluxo antigo baseado em PDF foi preservado apenas como referência histórica.
 As cores do relatório são mantidas em `docs/js/config.js`; a série longitudinal
 usa Cinza Enaex e a série vertical mantém o verde, sem azul estrutural no
 template.
+
+Os gráficos do relatório utilizam mais espaço para os dados e legendas inferiores. A curva normativa mantém os trechos configurados e os pontos medidos são apresentados individualmente.
