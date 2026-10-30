@@ -26,3 +26,6 @@
 
 - [x] O relatório apresenta blocos sem contornos externos.
 - [x] A pré-visualização aparece após a geração e é invalidada quando as entradas ou opções mudam.
+
+- [x] O cabeçalho técnico não repete a contagem de pontos.
+- [x] Gráficos, pontos e rodapé são verificados juntos para evitar sobreposição.

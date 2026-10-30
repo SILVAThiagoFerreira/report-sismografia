@@ -21,5 +21,17 @@
     "png_scale": 6.0,
     "png_page_number": 0,
     "vibration_alert_threshold_mm_s": 0.8
+  },
+  "charts": {
+    "figure_width": 9.0,
+    "figure_height": 7.0,
+    "web_figure_width": 6.5,
+    "figure_dpi": 220
+  },
+  "report_layout": {
+    "first_page_last_card_y": 45.0,
+    "point_card_gap": 8.0,
+    "points_title_gap": 12.0,
+    "chart_to_points_gap": 8.0
   }
 }

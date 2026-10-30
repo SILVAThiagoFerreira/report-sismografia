@@ -27,3 +27,5 @@ devem continuar usando o verde de status.
 A renderização dos gráficos reserva área para a legenda inferior e mantém os segmentos da curva normativa e os marcadores das medições no PDF e PNG gerados no navegador.
 
 Após a geração, a interface apresenta uma pré-visualização do relatório e disponibiliza os arquivos para download. A alteração das entradas ou opções invalida a prévia anterior. O relatório mantém divisórias úteis, sem contornos externos nos blocos.
+
+O relatório usa marcadores discretos nos títulos, sem linhas cinzas decorativas, e uma assinatura vetorial DNA Enaex no rodapé. O cabeçalho técnico não repete a contagem de pontos. A geometria compacta reserva mais altura aos gráficos e mantém os três primeiros pontos na primeira página.

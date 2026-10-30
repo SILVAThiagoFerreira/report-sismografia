@@ -24,3 +24,7 @@ Ampliar a área útil dos gráficos e a legibilidade de eixos, anotações e leg
 ## Pré-visualização e blocos
 
 Exibir o relatório gerado na própria página e remover os contornos externos dos blocos, preservando a estrutura, os gráficos e os downloads.
+
+## Geometria dos gráficos
+
+Aumentar a altura dos gráficos sem alterar os dados nem retirar os três pontos da primeira página; compactar os espaços entre os blocos mantendo a legibilidade.

@@ -16,7 +16,7 @@
 
   const DPI = 220;
   const DEFAULT_FIGURE_WIDTH_IN = 9.0;
-const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
+const DEFAULT_FIGURE_HEIGHT_IN = 7.0;
   const DEFAULT_WEB_FIGURE_WIDTH_IN = 6.5;
 
   const canvasDimensions = (config = {}) => {
@@ -49,8 +49,8 @@ const DEFAULT_FIGURE_HEIGHT_IN = 4.8;
   const AX_MARGIN = {
     left: 0.10,
     right: 0.96, // legenda centralizada abaixo
-    top: 0.92,
-    bottom: 0.20,
+    top: 0.95,
+    bottom: 0.13,
   };
 
   // ------- helpers gerais -------

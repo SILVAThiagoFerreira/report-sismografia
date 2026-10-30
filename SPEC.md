@@ -54,3 +54,7 @@ Os gráficos aproveitam a altura e a largura disponíveis, com legendas abaixo e
 ## Apresentação do relatório
 
 Os blocos do relatório são apresentados sem bordas externas. A pré-visualização é criada a partir dos mesmos artefatos gerados localmente e apresentada no site após a geração; uma alteração nas entradas ou opções invalida a visualização anterior.
+
+### Proporção e acomodação dos gráficos
+
+O canvas web usa `figure_width=9`, `figure_height=7`, `web_figure_width=6.5` e `figure_dpi=220`, com área de plotagem mais alta. Os cartões dos pontos mantêm 58 pt e usam espaçamento de 8 pt, com último cartão em y=45 pt. Os espaços do título dos pontos e dos gráficos são 12 e 8 pt. A primeira página mantém até três pontos e o PNG representa essa página.
