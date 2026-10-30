@@ -20,3 +20,7 @@ Migrar o report sismográfico para um fluxo 100% web, baseado em CSV, hospedado 
 ## Refinamento dos gráficos
 
 Ampliar a área útil dos gráficos e a legibilidade de eixos, anotações e legendas, preservando os trechos normativos e a independência das medições.
+
+## Pré-visualização e blocos
+
+Exibir o relatório gerado na própria página e remover os contornos externos dos blocos, preservando a estrutura, os gráficos e os downloads.

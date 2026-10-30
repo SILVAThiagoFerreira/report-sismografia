@@ -23,3 +23,6 @@
 - [x] A paleta do report está centralizada em `docs/js/config.js`.
 - [x] A série longitudinal usa Cinza Enaex, sem azul hardcoded no template.
 - [x] A série vertical e os estados de conformidade mantêm o verde configurado.
+
+- [x] O relatório apresenta blocos sem contornos externos.
+- [x] A pré-visualização aparece após a geração e é invalidada quando as entradas ou opções mudam.

@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=8445c8a" />
+    <link rel="stylesheet" href="styles.css?v=20261030-preview" />
 
     <!-- Dependências fixadas; os dados escolhidos permanecem no navegador. -->
     <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js" defer></script>
@@ -27,8 +27,8 @@
     <script src="js/compliance.js?v=8445c8a" defer></script>
     <script src="js/whatsapp.js?v=8445c8a" defer></script>
     <script src="js/charts.js?v=20261030-graficos" defer></script>
-    <script src="js/report.js?v=8445c8a" defer></script>
-    <script src="js/app.js?v=8445c8a" defer></script>
+    <script src="js/report.js?v=20261030-preview" defer></script>
+    <script src="js/app.js?v=20261030-preview" defer></script>
   </head>
   <body>
     <header class="topbar shell">
@@ -135,6 +135,18 @@
           </div>
           <p class="section-head__text">Visualize ou baixe cada arquivo. O ZIP reúne tudo.</p>
         </div>
+
+        <section class="report-preview" aria-labelledby="preview-title">
+          <div class="report-preview__heading">
+            <div>
+              <p class="eyebrow eyebrow--accent">Pré-visualização</p>
+              <h3 id="preview-title">Confira seu relatório</h3>
+              <p>Veja abaixo todas as páginas do PDF gerado.</p>
+            </div>
+            <a id="preview-open" class="tool-link" href="#" target="_blank" rel="noopener">Abrir PDF</a>
+          </div>
+          <div id="report-preview-pages" class="report-preview__pages" aria-label="Páginas do relatório"></div>
+        </section>
 
         <div class="tool-grid tool-grid--group" id="results-grid"></div>
 

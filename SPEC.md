@@ -50,3 +50,7 @@ Receber arquivos CSV de sismografia, validar os registros e gerar um relatório 
 ## Visualização dos gráficos
 
 Os gráficos aproveitam a altura e a largura disponíveis, com legendas abaixo e textos ampliados. A curva ABNT é desenhada por segmentos lineares nos vértices configurados; as medições independentes permanecem como pontos, sem interpolação entre locais. A quebra do eixo vertical mantém uma única escala horizontal.
+
+## Apresentação do relatório
+
+Os blocos do relatório são apresentados sem bordas externas. A pré-visualização é criada a partir dos mesmos artefatos gerados localmente e apresentada no site após a geração; uma alteração nas entradas ou opções invalida a visualização anterior.

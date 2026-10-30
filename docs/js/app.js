@@ -12,6 +12,8 @@
   const statusEl = document.getElementById("status");
   const resultsSection = document.getElementById("results-section");
   const resultsGrid = document.getElementById("results-grid");
+  const previewPages = document.getElementById("report-preview-pages");
+  const previewOpen = document.getElementById("preview-open");
   const zipLink = document.getElementById("zip-link");
   const zipMeta = document.getElementById("zip-meta");
   const clientInput = document.getElementById("client-input");
@@ -22,6 +24,7 @@
   let selected = [];
   /** Última geração — usada só para revogar URLs anteriores no clear. */
   let lastArtifactUrls = [];
+  let inputRevision = 0;
 
   const formatBytes = (n) => {
     if (n === 0) return "0 B";
@@ -74,7 +77,10 @@
   };
 
   const clearGeneratedResults = () => {
+    inputRevision += 1;
     resultsSection.hidden = true;
+    previewPages.replaceChildren();
+    previewOpen.removeAttribute("href");
     revokeLastUrls();
   };
 
@@ -122,7 +128,14 @@
     if (!btn) return;
     const idx = Number(btn.dataset.idx);
     selected.splice(idx, 1);
+    clearGeneratedResults();
     renderList();
+  });
+
+  // Alterações nas opções invalidam a visualização e os arquivos da execução anterior.
+  [clientInput, vibrationTargetInput, showVibrationIndexInput].forEach((input) => {
+    input?.addEventListener("input", clearGeneratedResults);
+    input?.addEventListener("change", clearGeneratedResults);
   });
 
   clearBtn.addEventListener("click", () => {
@@ -201,10 +214,7 @@
     };
   };
 
-  const pdfPageToPngBlob = async (pdfBytes, dpi = 300) => {
-    // pdf.js foi carregado como <script type="module">; a lib exporta window.pdfjsLib
-    // em builds legacy, mas o build .mjs recente expõe global.pdfjsLib via ESM injection.
-    // Fazemos import dinâmico para funcionar em ambos os cenários.
+  const renderPdfPages = async (pdfBytes, dpi = 300) => {
     let pdfjs = window.pdfjsLib;
     if (!pdfjs) {
       pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs");
@@ -214,18 +224,30 @@
         "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
     }
     const doc = await pdfjs.getDocument({ data: pdfBytes }).promise;
-    const page = await doc.getPage(1);
-    const scale = dpi / 72; // pdf.js usa unidades de 72 DPI por padrão.
-    const viewport = page.getViewport({ scale });
-    const canvas = document.createElement("canvas");
-    // A4 at 300 DPI is fractional in PDF points.  Width is rounded up and
-    // height to the nearest pixel to retain the reference 2481x3508 raster
-    // dimensions without adding an extra row to the PNG.
-    canvas.width = Math.ceil(viewport.width);
-    canvas.height = Math.round(viewport.height);
-    const ctx = canvas.getContext("2d");
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    const pages = [];
+    try {
+      for (let pageNumber = 1; pageNumber <= doc.numPages; pageNumber++) {
+        const page = await doc.getPage(pageNumber);
+        // O PNG de download mantém 300 DPI. As páginas adicionais só são
+        // usadas na pré-visualização e usam resolução menor para economizar memória.
+        const viewport = page.getViewport({ scale: (pageNumber === 1 ? dpi : 120) / 72 });
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.round(viewport.height);
+        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+        const blob = await new Promise((resolve, reject) => canvas.toBlob(
+          (value) => value ? resolve(value) : reject(new Error("Não foi possível renderizar a página do relatório.")),
+          "image/png"
+        ));
+        pages.push(blob);
+        canvas.width = 0;
+        canvas.height = 0;
+        page.cleanup();
+      }
+    } finally {
+      await doc.destroy();
+    }
+    return pages;
   };
 
   const runPipeline = async () => {
@@ -283,7 +305,8 @@
     // Copiamos os bytes antes de entregar ao pdf.js para preservar o original.
     setStatus("Renderizando imagem do relatório…");
     const pdfBytesForPng = pdfBytes.slice();
-    const pngBlob = await pdfPageToPngBlob(pdfBytesForPng, 300);
+    const previewBlobs = await renderPdfPages(pdfBytesForPng, 300);
+    const pngBlob = previewBlobs[0];
 
     // 6) Nota WhatsApp.
     const noteText = window.SismoWhatsapp.buildWhatsappNote(records, summary, cfg);
@@ -309,6 +332,7 @@
 
     return {
       run_id: runId,
+      previewBlobs,
       artifacts: {
         whatsapp: { name: nameTxt, blob: noteBlob },
         pdf: { name: namePdf, blob: pdfBlob },
@@ -321,6 +345,20 @@
   const renderResults = (result) => {
     revokeLastUrls();
     resultsGrid.innerHTML = "";
+    previewPages.replaceChildren();
+    for (const [index, blob] of result.previewBlobs.entries()) {
+      const url = URL.createObjectURL(blob);
+      lastArtifactUrls.push(url);
+      const page = document.createElement("figure");
+      page.className = "report-preview__page";
+      const caption = document.createElement("figcaption");
+      caption.textContent = `Página ${index + 1} de ${result.previewBlobs.length}`;
+      const image = document.createElement("img");
+      image.src = url;
+      image.alt = `Página ${index + 1} do relatório sismográfico gerado`;
+      page.append(caption, image);
+      previewPages.appendChild(page);
+    }
 
     const specs = [
       {
@@ -334,8 +372,8 @@
       {
         key: "pdf",
         number: "02",
-        title: "Relatório onepage",
-        description: "Uma página com resumo, gráficos e pontos.",
+        title: "Relatório PDF",
+        description: "Resumo, gráficos e pontos monitorados.",
         category: "PDF · Relatório",
         previewLabel: "Abrir PDF",
       },
@@ -353,6 +391,7 @@
       const art = result.artifacts[spec.key];
       const url = URL.createObjectURL(art.blob);
       lastArtifactUrls.push(url);
+      if (spec.key === "pdf") previewOpen.href = url;
       const card = document.createElement("article");
       card.className = "result-card";
       card.innerHTML = `
@@ -390,9 +429,15 @@
     generateBtn.disabled = true;
     if (exampleBtn) exampleBtn.disabled = true;
     generateBtn.classList.add("is-loading");
+    clearGeneratedResults();
+    const generationRevision = inputRevision;
     setStatus("");
     try {
       const result = await runPipeline();
+      if (generationRevision !== inputRevision) {
+        setStatus("As entradas foram alteradas. Gere o relatório novamente.");
+        return;
+      }
       renderResults(result);
       setStatus("Relatório gerado com sucesso.", "ok");
     } catch (err) {

@@ -25,3 +25,5 @@ devem continuar usando o verde de status.
 4. Baixar os artefatos gerados.
 
 A renderização dos gráficos reserva área para a legenda inferior e mantém os segmentos da curva normativa e os marcadores das medições no PDF e PNG gerados no navegador.
+
+Após a geração, a interface apresenta uma pré-visualização do relatório e disponibiliza os arquivos para download. A alteração das entradas ou opções invalida a prévia anterior. O relatório mantém divisórias úteis, sem contornos externos nos blocos.

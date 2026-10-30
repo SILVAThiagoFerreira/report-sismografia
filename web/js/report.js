@@ -79,21 +79,6 @@
     page.drawCircle({ x: x + w - r, y: y + h - r, size: r, color: fill });
   };
 
-  const drawRoundRect = (page, opts, pdflib) => {
-    const { x, y, w, h, radius = 3, fill = "#FFFFFF", shadow = false, stroke = null, borderWidth = 0.55 } = opts;
-    if (shadow) {
-      drawRoundedFill(page, x + 2, y - 2, w, h, radius, COLORS.shadow, pdflib);
-    }
-    drawRoundedFill(page, x, y, w, h, radius, fill, pdflib);
-    if (stroke) {
-      page.drawRectangle({
-        x, y, width: w, height: h,
-        borderColor: rgbColor(stroke, pdflib),
-        borderWidth,
-      });
-    }
-  };
-
   // Fontes Standard do pdf-lib (Helvetica) usam WinAnsi. Substituímos glifos
   // comuns que não caem no encoding por equivalentes textuais para não quebrar
   // a geração do PDF em campos gerados pelo usuário.
@@ -180,12 +165,9 @@
 
   const drawScope = (page, x, y, w, h, config, records, summary, fonts, pdflib) => {
     const reportLayout = config.report_layout || {};
-    const radius = Number(reportLayout.card_radius ?? 3);
-    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
     const headerHeight = Number(reportLayout.section_header_height ?? 20);
     const ruleWidth = Number(reportLayout.section_rule_width ?? 0.85);
     const accentWidth = Number(reportLayout.section_accent_width ?? 26);
-    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
     drawSectionHeader(page, x + 12, y + h - headerHeight, w - 24, headerHeight, config.report_text?.scope_title || "Escopo da Campanha", COLORS.dark, fonts, pdflib, "left", ruleWidth, accentWidth);
     const y0 = y + h - 32;
     const eventDate = fmtDateIso(summary.event_date);
@@ -207,12 +189,9 @@
 
   const drawConclusion = (page, x, y, w, h, records, summary, config, fonts, pdflib) => {
     const reportLayout = config.report_layout || {};
-    const radius = Number(reportLayout.card_radius ?? 3);
-    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
     const headerHeight = Number(reportLayout.section_header_height ?? 20);
     const ruleWidth = Number(reportLayout.section_rule_width ?? 0.85);
     const accentWidth = Number(reportLayout.section_accent_width ?? 26);
-    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
     drawSectionHeader(page, x + 12, y + h - headerHeight, w - 24, headerHeight, config.report_text?.conclusion_title || "Conclusão Técnica", COLORS.dark, fonts, pdflib, "left", ruleWidth, accentWidth);
     const rows = [
       ["Conformidade", summary.all_conforme_abnt ? "Todos os pontos abaixo dos limites da ABNT NBR 9653:2018." : "Há ponto(s) acima de limite ou com dado ausente para avaliação."],
@@ -245,11 +224,8 @@
     const reportLayout = config.report_layout || {};
     const headerHeight = Number(reportLayout.chart_header_height ?? 20);
     const padding = Number(reportLayout.chart_inner_padding ?? 9);
-    const radius = Number(reportLayout.card_radius ?? 3);
-    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
     const ruleWidth = Number(reportLayout.section_rule_width ?? 0.85);
     const accentWidth = Number(reportLayout.section_accent_width ?? 26);
-    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
     drawSectionHeader(page, x + padding, y + h - headerHeight, w - 2 * padding, headerHeight, title, COLORS.dark, fonts, pdflib, "center", ruleWidth, accentWidth);
     fitImage(page, chartImage, x + padding, y + padding, w - 2 * padding, h - headerHeight - 2 * padding);
   };
@@ -263,10 +239,7 @@
 
   const drawPointCard = (page, x, y, w, h, record, config, fonts, pdflib) => {
     const reportLayout = config.report_layout || {};
-    const radius = Number(reportLayout.card_radius ?? 3);
-    const borderWidth = Number(reportLayout.card_border_width ?? 0.55);
     const pointHeaderHeight = Number(reportLayout.point_header_height ?? 17);
-    drawRoundRect(page, { x, y, w, h, radius, fill: COLORS.white, stroke: COLORS.line, borderWidth }, pdflib);
     page.drawLine({
       start: { x: x + 12, y: y + h - pointHeaderHeight },
       end: { x: x + w - 12, y: y + h - pointHeaderHeight },
@@ -335,10 +308,6 @@
       foreground = COLORS.status_verificar_text;
     }
     drawRoundedFill(page, btnX, btnY, btnW, btnH, badgeRadius, background, pdflib);
-    page.drawRectangle({
-      x: btnX, y: btnY, width: btnW, height: btnH,
-      borderColor: rgbColor(foreground, pdflib), borderWidth: 0.45,
-    });
     const iconX = btnX + 9;
     const iconY = btnY + btnH / 2;
     page.drawCircle({ x: iconX, y: iconY, size: 3.3, color: rgbColor(foreground, pdflib) });
