@@ -29,3 +29,5 @@ A renderização dos gráficos reserva área para a legenda inferior e mantém o
 Após a geração, a interface apresenta uma pré-visualização do relatório e disponibiliza os arquivos para download. A alteração das entradas ou opções invalida a prévia anterior. O relatório mantém divisórias úteis, sem contornos externos nos blocos.
 
 O relatório usa marcadores discretos nos títulos, sem linhas cinzas decorativas, e uma assinatura vetorial DNA Enaex no rodapé. O cabeçalho técnico não repete a contagem de pontos. A geometria compacta reserva mais altura aos gráficos e mantém os três primeiros pontos na primeira página.
+
+Os estados de conformidade usam um retângulo neutro sem contorno, filete e símbolo vetoriais na cor do estado e texto selecionável no PDF. O PNG é derivado desse mesmo relatório.

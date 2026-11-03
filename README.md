@@ -57,3 +57,5 @@ Os gráficos do relatório utilizam mais espaço para os dados e legendas inferi
 Ao gerar o relatório, a pré-visualização aparece na própria página. Os blocos do relatório não têm contornos externos; divisórias e elementos técnicos continuam presentes.
 
 A proporção e os espaçamentos do relatório web são ajustados em `web/js/config.js` e `docs/js/config.js`, com os parâmetros correspondentes registrados em `config.json`. Os gráficos usam canvas de 1430 × 1112 pixels e a primeira página mantém até três pontos.
+
+Os estados de conformidade usam um retângulo neutro sem contorno, filete e símbolo vetoriais na cor do estado e texto selecionável no PDF. O PNG é derivado desse mesmo relatório.

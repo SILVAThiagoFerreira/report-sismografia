@@ -58,3 +58,5 @@ Os blocos do relatório são apresentados sem bordas externas. A pré-visualiza�
 ### Proporção e acomodação dos gráficos
 
 O canvas web usa `figure_width=9`, `figure_height=7`, `web_figure_width=6.5` e `figure_dpi=220`, com área de plotagem mais alta. Os cartões dos pontos mantêm 58 pt e usam espaçamento de 8 pt, com último cartão em y=45 pt. Os espaços do título dos pontos e dos gráficos são 12 e 8 pt. A primeira página mantém até três pontos e o PNG representa essa página.
+
+Os estados de conformidade usam um retângulo neutro sem contorno, filete e símbolo vetoriais na cor do estado e texto selecionável no PDF. O PNG é derivado desse mesmo relatório.

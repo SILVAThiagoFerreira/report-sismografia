@@ -24,14 +24,19 @@ async function checkReport(path) {
   };
   const sandbox = { window, fetch: async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(1) }), console, Uint8Array };
   vm.runInNewContext(fs.readFileSync(path, 'utf8'), sandbox);
-  const record = { point_name: 'Ponto', evaluation: { overall_conforme_abnt: true } };
-  await window.SismoReport.buildPdfReport({ records: [record, record, record, record], summary: {}, config: {}, chartCanvases: {}, logoUrl: '' });
+  const record = ok => ({ point_name: 'Ponto', evaluation: { overall_conforme_abnt: ok } });
+  await window.SismoReport.buildPdfReport({ records: [record(true), record(false), record(null), record(true)], summary: {}, config: {}, chartCanvases: {}, logoUrl: '' });
   assert.equal(pages.length, 2, 'deve incluir a página de continuação');
   const texts = pages[0].calls.filter(call => call.name === 'drawText').map(call => call.text);
   assert.ok(texts.includes('RELATÓRIO TÉCNICO'));
   assert.ok(!texts.some(text => String(text).startsWith('RELATÓRIO TÉCNICO  |')));
   assert.ok(texts.some(text => String(text).includes('pontos monitorados')), 'contagem da campanha deve permanecer');
   assert.ok(texts.filter(text => text === '>').length >= 4, 'marcadores discretos nas seções');
+  for (const label of ['CONFORME ABNT', 'VERIFICAR', 'DADO AUSENTE']) {
+    const status = pages[0].calls.find(call => call.name === 'drawText' && call.text === label);
+    assert.ok(status, `estado ${label} deve ser texto vetorial`);
+    assert.ok(pages[0].calls.some(call => call.name === 'drawRectangle' && call.options.width === 2 && call.options.x === status.options.x - 18 && status.options.y > call.options.y && status.options.y < call.options.y + call.options.height), 'cada estado deve ter filete vetorial');
+  }
   const continuation = pages[0].calls.find(call => call.name === 'drawText' && String(call.text).includes('páginas seguintes'));
   assert.ok(continuation && continuation.options.y > 30, 'aviso da continuação deve ficar acima do rodapé');
   for (const page of pages) {

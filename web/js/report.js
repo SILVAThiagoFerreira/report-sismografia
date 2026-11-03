@@ -255,30 +255,28 @@
     const btnH = Number(reportLayout.status_badge_height ?? 20);
     const btnX = x + w - btnW - 12;
     const btnY = y + h - btnH - 1;
-    const badgeRadius = Math.min(Number(reportLayout.status_badge_radius ?? 6), btnH / 2);
-    let background = COLORS.status_ausente_bg;
     let foreground = COLORS.status_ausente_text;
     if (label === "CONFORME ABNT") {
-      background = COLORS.status_conforme_bg;
       foreground = COLORS.status_conforme_text;
     } else if (label === "VERIFICAR") {
-      background = COLORS.status_verificar_bg;
       foreground = COLORS.status_verificar_text;
     }
-    drawRoundedFill(page, btnX, btnY, btnW, btnH, badgeRadius, background, pdflib);
-    const iconX = btnX + 9;
+    // Indicador técnico vetorial: base neutra e filete na cor do estado.
+    page.drawRectangle({ x: btnX, y: btnY, width: btnW, height: btnH, color: rgbColor(COLORS.light_green, pdflib) });
+    page.drawRectangle({ x: btnX, y: btnY, width: 2, height: btnH, color: rgbColor(foreground, pdflib) });
+    const iconX = btnX + 10;
     const iconY = btnY + btnH / 2;
-    page.drawCircle({ x: iconX, y: iconY, size: 3.3, color: rgbColor(foreground, pdflib) });
+    const ink = rgbColor(foreground, pdflib);
     if (label === "CONFORME ABNT") {
-      page.drawLine({ start: { x: iconX - 1.8, y: iconY }, end: { x: iconX - 0.5, y: iconY - 1.2 }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
-      page.drawLine({ start: { x: iconX - 0.5, y: iconY - 1.2 }, end: { x: iconX + 1.9, y: iconY + 1.5 }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
+      page.drawLine({ start: { x: iconX - 2.5, y: iconY }, end: { x: iconX - 0.7, y: iconY - 1.8 }, color: ink, thickness: 1 });
+      page.drawLine({ start: { x: iconX - 0.7, y: iconY - 1.8 }, end: { x: iconX + 2.8, y: iconY + 2 }, color: ink, thickness: 1 });
     } else if (label === "VERIFICAR") {
-      page.drawLine({ start: { x: iconX, y: iconY - 1.5 }, end: { x: iconX, y: iconY + 1.1 }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
-      page.drawCircle({ x: iconX, y: iconY - 2.1, size: 0.35, color: rgbColor(COLORS.white, pdflib) });
+      page.drawLine({ start: { x: iconX, y: iconY - 0.5 }, end: { x: iconX, y: iconY + 2.5 }, color: ink, thickness: 1 });
+      page.drawCircle({ x: iconX, y: iconY - 2.2, size: 0.55, color: ink });
     } else {
-      page.drawLine({ start: { x: iconX - 1.7, y: iconY }, end: { x: iconX + 1.7, y: iconY }, color: rgbColor(COLORS.white, pdflib), thickness: 0.8 });
+      page.drawLine({ start: { x: iconX - 2.5, y: iconY }, end: { x: iconX + 2.5, y: iconY }, color: ink, thickness: 1 });
     }
-    drawText(page, label, btnX + 17, btnY + (btnH - 6.6) / 2 + 1.8, 6.6, foreground, true, fonts, pdflib);
+    drawText(page, label, btnX + 18, btnY + (btnH - 6.6) / 2 + 1.2, 6.6, foreground, true, fonts, pdflib);
   };
 
   const drawFooter = (page, config, fonts, pdflib) => {
